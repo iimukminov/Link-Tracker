@@ -3,12 +3,12 @@ package backend.academy.linktracker.bot.command;
 import backend.academy.linktracker.bot.command.impl.WrongCommand;
 import com.pengrad.telegrambot.model.BotCommand;
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
@@ -22,16 +22,16 @@ public class CommandRegistry {
     @PostConstruct
     public void init() {
         log.atInfo()
-            .setMessage("Registering commands")
-            .addKeyValue("total", commands.size())
-            .log();
+                .setMessage("Registering commands")
+                .addKeyValue("total", commands.size())
+                .log();
         for (Command command : commands) {
             if (!command.getName().isEmpty()) {
                 commandMap.put(command.getName().toLowerCase(), command);
                 log.atInfo()
-                    .setMessage("Command registered")
-                    .addKeyValue("name", command.getName())
-                    .log();
+                        .setMessage("Command registered")
+                        .addKeyValue("name", command.getName())
+                        .log();
             }
         }
     }
@@ -51,5 +51,4 @@ public class CommandRegistry {
         }
         return botCommands;
     }
-
 }

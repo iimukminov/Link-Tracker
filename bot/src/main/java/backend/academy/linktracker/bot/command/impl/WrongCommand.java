@@ -13,7 +13,7 @@ public class WrongCommand implements Command {
 
     @Override
     public void execute(Update update) {
-        long chatId =  update.message().chat().id();
+        long chatId = update.message().chat().id();
         sender.sendMessage(chatId, "Неизвестная команда. Воспользуйтесь /help");
     }
 

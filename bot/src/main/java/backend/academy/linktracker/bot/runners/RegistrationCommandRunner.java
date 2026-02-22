@@ -18,9 +18,9 @@ public class RegistrationCommandRunner implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         log.atInfo()
-            .setMessage("Starting registration command")
-            .addKeyValue("count", commandRegistry.getBotCommands().length)
-            .log();
+                .setMessage("Starting registration command")
+                .addKeyValue("count", commandRegistry.getBotCommands().length)
+                .log();
         SetMyCommands setMyCommands = new SetMyCommands(commandRegistry.getBotCommands());
         bot.execute(setMyCommands);
     }

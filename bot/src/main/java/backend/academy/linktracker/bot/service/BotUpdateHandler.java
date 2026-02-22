@@ -20,9 +20,9 @@ public class BotUpdateHandler {
     @PostConstruct
     public void init() {
         log.atInfo()
-            .setMessage("Initializing BotUpdateHandler")
-            .addKeyValue("commands_count", commandRegistry.getBotCommands().length)
-            .log();
+                .setMessage("Initializing BotUpdateHandler")
+                .addKeyValue("commands_count", commandRegistry.getBotCommands().length)
+                .log();
 
         bot.setUpdatesListener(updates -> {
             for (Update update : updates) {
@@ -36,9 +36,9 @@ public class BotUpdateHandler {
 
     public void processUpdate(Update update) {
         log.atDebug()
-            .setMessage("Processing update")
-            .addKeyValue("update_id", update.updateId())
-            .log();
+                .setMessage("Processing update")
+                .addKeyValue("update_id", update.updateId())
+                .log();
 
         Message message = update.message();
         if (message == null || message.text() == null) {
@@ -47,12 +47,11 @@ public class BotUpdateHandler {
         String commandName = message.text().split("\\s+")[0];
 
         log.atInfo()
-            .setMessage("Dispatching command")
-            .addKeyValue("chatId", message.chat().id())
-            .addKeyValue("command", commandName)
-            .log();
+                .setMessage("Dispatching command")
+                .addKeyValue("chatId", message.chat().id())
+                .addKeyValue("command", commandName)
+                .log();
 
         commandRegistry.getCommand(commandName).execute(update);
     }
-
 }

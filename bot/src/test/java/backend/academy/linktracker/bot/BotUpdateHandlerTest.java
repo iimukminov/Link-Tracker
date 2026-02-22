@@ -1,5 +1,7 @@
 package backend.academy.linktracker.bot;
 
+import static org.mockito.Mockito.*;
+
 import backend.academy.linktracker.bot.command.Command;
 import backend.academy.linktracker.bot.command.CommandRegistry;
 import backend.academy.linktracker.bot.sender.TelegramSender;
@@ -10,8 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BotUpdateHandlerTest {
@@ -32,9 +32,7 @@ class BotUpdateHandlerTest {
         Command startCommand = mock(Command.class);
         when(registry.getCommand("/start")).thenReturn(startCommand);
 
-
         handler.processUpdate(update);
-
 
         verify(registry).getCommand("/start");
         verify(startCommand).execute(update);

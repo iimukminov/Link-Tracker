@@ -1,7 +1,6 @@
 package backend.academy.linktracker.bot.sender;
 
 import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.request.BaseRequest;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.BaseResponse;
 import lombok.RequiredArgsConstructor;
@@ -17,19 +16,19 @@ public class TelegramSender {
 
     public void sendMessage(long chatId, String text) {
         log.atInfo()
-            .setMessage("Sending message")
-            .addKeyValue("chatId", chatId)
-            .addKeyValue("text", text)
-            .log();
+                .setMessage("Sending message")
+                .addKeyValue("chatId", chatId)
+                .addKeyValue("text", text)
+                .log();
 
         BaseResponse response = bot.execute(new SendMessage(chatId, text));
 
         log.atInfo()
-            .setMessage("Message sent")
-            .addKeyValue("chatId", chatId)
-            .addKeyValue("text", text)
-            .addKeyValue("success", response.isOk())
-            .addKeyValue("errorCode", response.errorCode())
-            .log();
+                .setMessage("Message sent")
+                .addKeyValue("chatId", chatId)
+                .addKeyValue("text", text)
+                .addKeyValue("success", response.isOk())
+                .addKeyValue("errorCode", response.errorCode())
+                .log();
     }
 }

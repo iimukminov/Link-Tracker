@@ -1,18 +1,16 @@
 package backend.academy.linktracker.bot;
 
+import static org.mockito.Mockito.*;
+
 import backend.academy.linktracker.bot.command.impl.*;
 import backend.academy.linktracker.bot.sender.TelegramSender;
 import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.request.SendMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CommandTest {
