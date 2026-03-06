@@ -3,10 +3,12 @@ package backend.academy.linktracker.bot;
 import static org.mockito.Mockito.*;
 
 import backend.academy.linktracker.bot.command.impl.*;
+import backend.academy.linktracker.bot.properties.BotMessages;
 import backend.academy.linktracker.bot.sender.TelegramSender;
 import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -19,44 +21,56 @@ class CommandTest {
     TelegramSender sender;
 
     @Mock
+    BotMessages messages;
+
+    @Mock
     Update update;
+
+    @Mock
+    Message message;
+
+    @Mock
+    Chat chat;
+
+    private final long chatId = 123456L;
+
+    @BeforeEach
+    void setUp() {
+        when(update.message()).thenReturn(message);
+        when(message.chat()).thenReturn(chat);
+        when(chat.id()).thenReturn(chatId);
+    }
 
     @Test
     void startCommand_positive() {
-        StartCommand command = new StartCommand(sender);
-        long chatId = 123456L;
-        when(update.message()).thenReturn(mock(Message.class));
-        when(update.message().chat()).thenReturn(mock(Chat.class));
-        when(update.message().chat().id()).thenReturn(chatId);
+        String expectedText = "mocked_start_message";
+        when(messages.getStart()).thenReturn(expectedText);
+        StartCommand command = new StartCommand(sender, messages);
 
-        command.execute(update);
+        command.execute(update.message());
 
-        verify(sender).sendMessage(eq(chatId), eq("Добро пожаловать! Используйте /help для списка команд"));
+        verify(sender).sendMessage(eq(chatId), eq(expectedText));
     }
 
     @Test
     void helpCommand_positive() {
-        HelpCommand command = new HelpCommand(sender);
-        long chatId = 123456L;
-        when(update.message()).thenReturn(mock(Message.class));
-        when(update.message().chat()).thenReturn(mock(Chat.class));
-        when(update.message().chat().id()).thenReturn(chatId);
+        String expectedText = "mocked_help_message";
+        when(messages.getHelp()).thenReturn(expectedText);
+        HelpCommand command = new HelpCommand(sender, messages);
 
-        command.execute(update);
+        command.execute(update.message());
 
-        verify(sender).sendMessage(eq(chatId), contains("Список доступных команд"));
+        verify(sender).sendMessage(eq(chatId), eq(expectedText));
     }
 
     @Test
     void wrongCommand_negative() {
-        WrongCommand command = new WrongCommand(sender);
-        long chatId = 123456L;
-        when(update.message()).thenReturn(mock(Message.class));
-        when(update.message().chat()).thenReturn(mock(Chat.class));
-        when(update.message().chat().id()).thenReturn(chatId);
+        String expectedText = "mocked_wrong_message";
+        when(messages.getWrong()).thenReturn(expectedText);
+        WrongCommand command = new WrongCommand(sender, messages);
 
-        command.execute(update);
+        command.execute(update.message());
 
-        verify(sender).sendMessage(eq(chatId), eq("Неизвестная команда. Воспользуйтесь /help"));
+        verify(sender).sendMessage(eq(chatId), eq(expectedText));
     }
 }

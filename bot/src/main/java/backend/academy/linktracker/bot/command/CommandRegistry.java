@@ -1,39 +1,34 @@
 package backend.academy.linktracker.bot.command;
 
-import backend.academy.linktracker.bot.command.impl.WrongCommand;
 import com.pengrad.telegrambot.model.BotCommand;
-import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import lombok.RequiredArgsConstructor;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class CommandRegistry {
+    private final Map<String, Command> commandMap;
+    private final Command wrongCommand;
 
-    private final List<Command> commands;
-    private final Map<String, Command> commandMap = new ConcurrentHashMap<>();
-    private final WrongCommand wrongCommand;
-
-    @PostConstruct
-    public void init() {
+    public CommandRegistry(List<Command> commands, Command wrongCommand) {
         log.atInfo()
-                .setMessage("Registering commands")
-                .addKeyValue("total", commands.size())
+                .setMessage("Registering command")
+                .addKeyValue("commands", commands.stream().map(Command::getName).toList())
                 .log();
-        for (Command command : commands) {
-            if (!command.getName().isEmpty()) {
-                commandMap.put(command.getName().toLowerCase(), command);
-                log.atInfo()
-                        .setMessage("Command registered")
-                        .addKeyValue("name", command.getName())
-                        .log();
-            }
-        }
+
+        this.wrongCommand = wrongCommand;
+        this.commandMap = commands.stream()
+                .filter(command -> !command.getName().isEmpty())
+                .collect(Collectors.toConcurrentMap(
+                        command -> command.getName().toLowerCase(), command -> command, (existing, replacement) -> {
+                            log.atInfo()
+                                    .addKeyValue("Duplicate command: {}", replacement.getName())
+                                    .log();
+                            return existing;
+                        }));
     }
 
     public Command getCommand(String commandName) {
@@ -41,14 +36,8 @@ public class CommandRegistry {
     }
 
     public BotCommand[] getBotCommands() {
-        BotCommand[] botCommands = new BotCommand[commands.size() - 1];
-        int i = 0;
-        for (Command command : commands) {
-            if (!command.getName().isEmpty()) {
-                botCommands[i] = new BotCommand(command.getName(), command.getDescription());
-                i++;
-            }
-        }
-        return botCommands;
+        return commandMap.values().stream()
+                .map(command -> new BotCommand(command.getName(), command.getDescription()))
+                .toArray(BotCommand[]::new);
     }
 }

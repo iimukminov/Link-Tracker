@@ -4,8 +4,7 @@ import static org.mockito.Mockito.*;
 
 import backend.academy.linktracker.bot.command.Command;
 import backend.academy.linktracker.bot.command.CommandRegistry;
-import backend.academy.linktracker.bot.sender.TelegramSender;
-import backend.academy.linktracker.bot.service.BotUpdateHandler;
+import backend.academy.linktracker.bot.handlers.MessageHandler;
 import com.pengrad.telegrambot.model.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,72 +13,66 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class BotUpdateHandlerTest {
+class MessageHandlerTest {
 
     @Mock
     CommandRegistry registry;
 
-    @Mock
-    TelegramSender sender;
-
     @InjectMocks
-    BotUpdateHandler handler;
+    MessageHandler handler;
 
     @Test
     void testStartCommand_positive() {
-
-        Update update = createUpdate("/start", 123456L);
+        Message message = createMessage("/start", 123456L);
         Command startCommand = mock(Command.class);
         when(registry.getCommand("/start")).thenReturn(startCommand);
 
-        handler.processUpdate(update);
+        handler.handle(message);
 
         verify(registry).getCommand("/start");
-        verify(startCommand).execute(update);
+        verify(startCommand).execute(message);
     }
 
     @Test
     void testHelpCommand_positive() {
-        Update update = createUpdate("/help", 123456L);
+        Message message = createMessage("/help", 123456L);
         Command helpCommand = mock(Command.class);
         when(registry.getCommand("/help")).thenReturn(helpCommand);
 
-        handler.processUpdate(update);
+        handler.handle(message);
 
-        verify(helpCommand).execute(update);
+        verify(helpCommand).execute(message);
     }
 
     @Test
     void testUnknownCommand_negative() {
-        Update update = createUpdate("/unknown", 123456L);
+        Message message = createMessage("/unknown", 123456L);
         Command wrongCommand = mock(Command.class);
         when(registry.getCommand("/unknown")).thenReturn(wrongCommand);
 
-        handler.processUpdate(update);
+        handler.handle(message);
 
-        verify(wrongCommand).execute(update);
+        verify(wrongCommand).execute(message);
     }
 
     @Test
-    void testNoMessage() {
-        Update update = mock(Update.class);
-        when(update.message()).thenReturn(null);
+    void testNoText() {
+        Message message = mock(Message.class);
+        when(message.text()).thenReturn(null);
 
-        handler.processUpdate(update);
+        handler.handle(message);
 
         verifyNoInteractions(registry);
     }
 
-    private Update createUpdate(String text, long chatId) {
-        Update update = mock(Update.class);
+    private Message createMessage(String text, long chatId) {
         Message message = mock(Message.class);
         Chat chat = mock(Chat.class);
 
-        when(update.message()).thenReturn(message);
         when(message.text()).thenReturn(text);
         when(message.chat()).thenReturn(chat);
         when(chat.id()).thenReturn(chatId);
 
-        return update;
+        return message;
     }
 }

@@ -1,9 +1,9 @@
 package backend.academy.linktracker.bot.command;
 
-import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.Message;
 
 public interface Command {
-    void execute(Update update);
+    void execute(Message message);
 
     String getName();
 
