@@ -1,5 +1,6 @@
 package backend.academy.linktracker.bot.command;
 
+import backend.academy.linktracker.bot.command.impl.WrongCommand;
 import com.pengrad.telegrambot.model.BotCommand;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +14,7 @@ public class CommandRegistry {
     private final Map<String, Command> commandMap;
     private final Command wrongCommand;
 
-    public CommandRegistry(List<Command> commands, Command wrongCommand) {
+    public CommandRegistry(List<Command> commands, WrongCommand wrongCommand) {
         log.atInfo()
                 .setMessage("Registering command")
                 .addKeyValue("commands", commands.stream().map(Command::getName).toList())

@@ -24,6 +24,10 @@ public class TrackCommand implements Command {
 
         switch (userStates) {
             case IDLE:
+                startTracking(chatId);
+                break;
+            default:
+                break;
         }
     }
 

@@ -19,7 +19,10 @@ public class MessageHandler {
             return;
         }
 
-        log.atInfo().addKeyValue("Processing message: {}", message.text()).log();
+        log.atInfo()
+                .setMessage("Handling command")
+                .addKeyValue("Processing message: {}", message.text())
+                .log();
 
         String commandName = extractCommandName(message.text());
 

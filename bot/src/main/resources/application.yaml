@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: bot
+  config:
+    import:
+      - optional:file:bot/config/messages.yml
+      - optional:file:config/messages.yml
 
 app:
   telegram:
