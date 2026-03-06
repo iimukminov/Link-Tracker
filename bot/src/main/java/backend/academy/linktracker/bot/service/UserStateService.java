@@ -16,16 +16,19 @@ public class UserStateService {
     }
 
     public void setState(long chatId, UserStates state) {
-        log.info("User {} changed state to {}", chatId, state);
+        log.atInfo()
+                .setMessage("User state changed")
+                .addKeyValue("chatId", chatId)
+                .addKeyValue("newState", state)
+                .log();
         chatStates.put(chatId, state);
     }
 
     public void clearState(long chatId) {
-        log.info("User {} cleared state", chatId);
+        log.atInfo()
+                .setMessage("User state cleared")
+                .addKeyValue("chatId", chatId)
+                .log();
         chatStates.remove(chatId);
-    }
-
-    public boolean isIdle(long chatId) {
-        return !chatStates.containsKey(chatId) || UserStates.IDLE.equals(chatStates.get(chatId));
     }
 }

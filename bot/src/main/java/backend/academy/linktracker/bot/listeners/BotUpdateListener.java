@@ -27,7 +27,7 @@ public class BotUpdateListener {
                 }
                 return UpdatesListener.CONFIRMED_UPDATES_ALL;
             } catch (Exception e) {
-                log.error("Error processing updates", e);
+                log.atError().setMessage("Error processing updates").setCause(e).log();
                 return UpdatesListener.CONFIRMED_UPDATES_ALL;
             }
         });
@@ -38,7 +38,7 @@ public class BotUpdateListener {
     public void processUpdate(Update update) {
         log.atDebug()
                 .setMessage("Processing update")
-                .addKeyValue("update_id", update.updateId())
+                .addKeyValue("updateId", update.updateId())
                 .log();
 
         if (update.message() != null) {

@@ -2,7 +2,6 @@ package backend.academy.linktracker.bot.runners;
 
 import backend.academy.linktracker.bot.command.CommandRegistry;
 import backend.academy.linktracker.bot.sender.TelegramSender;
-import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -20,7 +19,6 @@ public class RegistrationCommandRunner implements CommandLineRunner {
         log.atInfo()
                 .setMessage("Starting registration command")
                 .addKeyValue("count", commandRegistry.getBotCommands().length)
-                .addKeyValue("commands", Arrays.toString(commandRegistry.getBotCommands()))
                 .log();
         sender.setMyCommands(commandRegistry.getBotCommands());
     }

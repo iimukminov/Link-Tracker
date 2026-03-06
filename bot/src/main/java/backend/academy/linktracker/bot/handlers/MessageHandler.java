@@ -1,5 +1,3 @@
-// FILE: bot/src/main/java/backend/academy/linktracker/bot/handlers/MessageHandler.java
-
 package backend.academy.linktracker.bot.handlers;
 
 import backend.academy.linktracker.bot.command.CommandRegistry;
@@ -19,17 +17,13 @@ public class MessageHandler {
             return;
         }
 
-        log.atInfo()
-                .setMessage("Handling command")
-                .addKeyValue("Processing message: {}", message.text())
-                .log();
-
         String commandName = extractCommandName(message.text());
 
         log.atInfo()
                 .setMessage("Dispatching command")
                 .addKeyValue("chatId", message.chat().id())
                 .addKeyValue("command", commandName)
+                .addKeyValue("fullText", message.text())
                 .log();
 
         commandRegistry.getCommand(commandName).execute(message);

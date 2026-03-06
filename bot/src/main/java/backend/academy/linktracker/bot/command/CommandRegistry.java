@@ -25,8 +25,9 @@ public class CommandRegistry {
                 .filter(command -> !command.getName().isEmpty())
                 .collect(Collectors.toConcurrentMap(
                         command -> command.getName().toLowerCase(), command -> command, (existing, replacement) -> {
-                            log.atInfo()
-                                    .addKeyValue("Duplicate command: {}", replacement.getName())
+                            log.atWarn()
+                                    .setMessage("Duplicate command registration attempt")
+                                    .addKeyValue("command", replacement.getName())
                                     .log();
                             return existing;
                         }));
