@@ -10,6 +10,8 @@ spring:
       - optional:file:config/messages.yml
 
 app:
+  scrapper:
+    base-url: http://localhost:8081
   telegram:
     url: https://api.telegram.org/bot
     token: ${TELEGRAM_BOT_TOKEN} # Use env variable. DO NOT KEEP TOKEN HERE
