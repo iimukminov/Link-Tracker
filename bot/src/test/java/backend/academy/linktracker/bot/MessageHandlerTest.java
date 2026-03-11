@@ -5,6 +5,8 @@ import static org.mockito.Mockito.*;
 import backend.academy.linktracker.bot.command.Command;
 import backend.academy.linktracker.bot.command.CommandRegistry;
 import backend.academy.linktracker.bot.handlers.MessageHandler;
+import backend.academy.linktracker.bot.handlers.StateHandlerRegistry;
+import backend.academy.linktracker.bot.service.UserStateService;
 import com.pengrad.telegrambot.model.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +19,12 @@ class MessageHandlerTest {
 
     @Mock
     CommandRegistry registry;
+
+    @Mock
+    UserStateService userStateService;
+
+    @Mock
+    StateHandlerRegistry stateHandlerRegistry;
 
     @InjectMocks
     MessageHandler handler;
