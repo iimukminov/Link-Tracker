@@ -6,10 +6,7 @@
 
 * Получите токен для бота у [@BotFather](https://t.me/BotFather) через команду `/newbot`.
 
-
 * (Опционально) Получите GitHub Personal Access Token для работы с API без жестких лимитов.
-
-
 
 ### 2. Настройка переменных окружения
 
@@ -19,19 +16,13 @@
 
 * `TELEGRAM_BOT_TOKEN` — ваш токен от BotFather.
 
-
 * `APP_SCRAPPER_BASE_URL` — адрес сервиса Scrapper (по умолчанию `http://localhost:8081`).
-
-
 
 #### Для модуля `scrapper`:
 
 * `GITHUB_TOKEN` — ваш GitHub PAT.
 
-
 * `STACKOVERFLOW_KEY` — ключ API StackOverflow.
-
-
 
 ### 3. Запуск сервисов
 
@@ -46,3 +37,4 @@ mvn clean install -DskipTests
 1. **Scrapper**: `backend.academy.linktracker.scrapper.ScrapperApplication`
 
 2. **Bot**: `backend.academy.linktracker.bot.BotApplication`
+
