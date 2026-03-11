@@ -5,6 +5,7 @@ import static org.mockito.Mockito.*;
 import backend.academy.linktracker.bot.command.impl.*;
 import backend.academy.linktracker.bot.properties.BotMessages;
 import backend.academy.linktracker.bot.sender.TelegramSender;
+import backend.academy.linktracker.bot.service.ScrapperClient;
 import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
@@ -32,6 +33,9 @@ class CommandTest {
     @Mock
     Chat chat;
 
+    @Mock
+    ScrapperClient scrapperClient;
+
     private final long chatId = 123456L;
 
     @BeforeEach
@@ -45,11 +49,13 @@ class CommandTest {
     void startCommand_positive() {
         String expectedText = "mocked_start_message";
         when(messages.getStart()).thenReturn(expectedText);
-        StartCommand command = new StartCommand(sender, messages);
+
+        StartCommand command = new StartCommand(sender, messages, scrapperClient);
 
         command.execute(update.message());
 
         verify(sender).sendMessage(eq(chatId), eq(expectedText));
+        verify(scrapperClient).registerChat(eq(chatId));
     }
 
     @Test

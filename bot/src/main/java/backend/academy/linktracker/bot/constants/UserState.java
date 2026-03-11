@@ -1,6 +1,6 @@
 package backend.academy.linktracker.bot.constants;
 
-public enum UserStates {
+public enum UserState {
     IDLE,
     AWAITING_LINK,
     AWAITING_TAGS;

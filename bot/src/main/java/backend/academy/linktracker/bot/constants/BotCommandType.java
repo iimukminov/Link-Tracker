@@ -8,7 +8,9 @@ import lombok.Getter;
 public enum BotCommandType {
     HELP("/help", "Список доступных команд"),
     START("/start", "Старт бота"),
-    TRACK("/track", "Отслеживать ссылку");
+    TRACK("/track", "Отслеживать ссылку"),
+    UNTRACK("/untrack", "Прекратить отслеживание"),
+    LIST("/list", "Список отслеживаемых ссылок");
 
     private final String name;
     private final String description;

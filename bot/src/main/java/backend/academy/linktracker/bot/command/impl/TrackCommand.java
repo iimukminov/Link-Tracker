@@ -2,7 +2,7 @@ package backend.academy.linktracker.bot.command.impl;
 
 import backend.academy.linktracker.bot.command.Command;
 import backend.academy.linktracker.bot.constants.BotCommandType;
-import backend.academy.linktracker.bot.constants.UserStates;
+import backend.academy.linktracker.bot.constants.UserState;
 import backend.academy.linktracker.bot.properties.BotMessages;
 import backend.academy.linktracker.bot.sender.TelegramSender;
 import backend.academy.linktracker.bot.service.UserStateService;
@@ -20,9 +20,9 @@ public class TrackCommand implements Command {
     @Override
     public void execute(Message message) {
         long chatId = message.chat().id();
-        UserStates userStates = userStateService.getState(chatId);
+        UserState userState = userStateService.getState(chatId);
 
-        switch (userStates) {
+        switch (userState) {
             case IDLE:
                 startTracking(chatId);
                 break;
@@ -32,7 +32,7 @@ public class TrackCommand implements Command {
     }
 
     private void startTracking(long chatId) {
-        userStateService.setState(chatId, UserStates.AWAITING_LINK);
+        userStateService.setState(chatId, UserState.AWAITING_LINK);
         sender.sendMessage(chatId, messages.getTrack().getLinkRequest());
     }
 

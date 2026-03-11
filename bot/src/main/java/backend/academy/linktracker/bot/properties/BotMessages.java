@@ -18,11 +18,22 @@ public class BotMessages {
 
     @NotNull
     @NotEmpty
-    private String help = "Список команд: \n/start \n/help";
+    private String help = """
+      Доступные команды:
+      /start - Запуск бота
+      /help - Справка
+      /track - Отслеживать ссылку
+      /untrack [ссылка] - Прекратить отслеживание
+      /list [тег] - Список ссылок
+      """;
 
     @NotNull
     @NotEmpty
     private String wrong = "Неизвестная команда";
+
+    @NotNull
+    @NotEmpty
+    private String cancel = "Действие отменено";
 
     private Track track = new Track();
     private Untrack untrack = new Untrack();
