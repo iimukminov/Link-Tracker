@@ -18,9 +18,9 @@ public class BotUpdateService {
     public void processUpdate(LinkUpdate linkUpdate) {
         if (linkUpdate.getTgChatIds() == null || linkUpdate.getTgChatIds().isEmpty()) {
             log.atWarn()
-                .setMessage("Received update with no target chat IDs")
-                .addKeyValue("link_id", linkUpdate.getId())
-                .log();
+                    .setMessage("Received update with no target chat IDs")
+                    .addKeyValue("link_id", linkUpdate.getId())
+                    .log();
             return;
         }
 
