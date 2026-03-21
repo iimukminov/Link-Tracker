@@ -1,7 +1,7 @@
 package backend.academy.linktracker.bot.runners;
 
+import backend.academy.linktracker.bot.client.TelegramSender;
 import backend.academy.linktracker.bot.command.CommandRegistry;
-import backend.academy.linktracker.bot.sender.TelegramSender;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;

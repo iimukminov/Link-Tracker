@@ -1,12 +1,12 @@
 package backend.academy.linktracker.bot.handlers.impl;
 
+import backend.academy.linktracker.bot.client.ScrapperClient;
+import backend.academy.linktracker.bot.client.TelegramSender;
 import backend.academy.linktracker.bot.constants.UserState;
-import backend.academy.linktracker.bot.dto.AddLinkRequest;
 import backend.academy.linktracker.bot.handlers.StateHandler;
 import backend.academy.linktracker.bot.properties.BotMessages;
-import backend.academy.linktracker.bot.sender.TelegramSender;
-import backend.academy.linktracker.bot.service.ScrapperClient;
 import backend.academy.linktracker.bot.service.UserStateService;
+import backend.academy.linktracker.scrapper.dto.AddLinkRequest; // Поменяли импорт на контракты скраппера
 import com.pengrad.telegrambot.model.Message;
 import java.net.URI;
 import java.util.Arrays;
@@ -33,7 +33,7 @@ public class AwaitingTagsHandler implements StateHandler {
 
         String linkStr = userStateService.getTempData(chatId, "link");
         if (linkStr == null) {
-            telegramSender.sendMessage(chatId, "Произошла ошибка, ссылка потерялась. Начните сначала: /track");
+            telegramSender.sendMessage(chatId, messages.getTrack().getLostLink());
             userStateService.setState(chatId, UserState.IDLE);
             return;
         }
@@ -47,16 +47,22 @@ public class AwaitingTagsHandler implements StateHandler {
         }
 
         try {
-            AddLinkRequest request = new AddLinkRequest(URI.create(linkStr), tags, List.of());
+            AddLinkRequest request =
+                    new AddLinkRequest().link(URI.create(linkStr)).tags(tags).filters(List.of());
+
             scrapperClient.addLink(chatId, request);
 
             telegramSender.sendMessage(chatId, messages.getTrack().getSuccess());
 
         } catch (HttpClientErrorException.Conflict e) {
+            log.atInfo()
+                    .addKeyValue("chatId", chatId)
+                    .addKeyValue("link", linkStr)
+                    .log("User tried to track an already tracked link");
             telegramSender.sendMessage(chatId, messages.getTrack().getAlreadyTracked());
         } catch (Exception e) {
             log.atError().setMessage("Error adding link").setCause(e).log();
-            telegramSender.sendMessage(chatId, "Произошла ошибка при сохранении ссылки на сервере.");
+            telegramSender.sendMessage(chatId, messages.getTrack().getError());
         } finally {
             userStateService.setState(chatId, UserState.IDLE);
             userStateService.clearTempData(chatId);

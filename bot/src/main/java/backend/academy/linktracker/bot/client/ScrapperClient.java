@@ -1,22 +1,19 @@
-package backend.academy.linktracker.bot.service;
+package backend.academy.linktracker.bot.client;
 
-import backend.academy.linktracker.bot.dto.AddLinkRequest;
-import backend.academy.linktracker.bot.dto.LinkResponse;
-import backend.academy.linktracker.bot.dto.ListLinksResponse;
-import backend.academy.linktracker.bot.dto.RemoveLinkRequest;
-import org.springframework.beans.factory.annotation.Value;
+// Импортируем контракты скраппера!
+import backend.academy.linktracker.scrapper.dto.AddLinkRequest;
+import backend.academy.linktracker.scrapper.dto.LinkResponse;
+import backend.academy.linktracker.scrapper.dto.ListLinksResponse;
+import backend.academy.linktracker.scrapper.dto.RemoveLinkRequest;
 import org.springframework.http.HttpMethod;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-@Service
 public class ScrapperClient {
 
     private final RestClient restClient;
 
-    public ScrapperClient(
-            RestClient.Builder builder, @Value("${app.scrapper.base-url:http://localhost:8081}") String baseUrl) {
-        this.restClient = builder.baseUrl(baseUrl).build();
+    public ScrapperClient(RestClient restClient) {
+        this.restClient = restClient;
     }
 
     public void registerChat(long chatId) {

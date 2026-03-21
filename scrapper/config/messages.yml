@@ -1,0 +1,8 @@
+scrapper:
+  messages:
+    errors:
+      badRequest: "Некорректные параметры запроса"
+      chatNotFound: "Чат не существует"
+      linkNotFound: "Ссылка не найдена в списке отслеживания"
+      linkAlreadyTracked: "Ссылка уже отслеживается"
+      chatAlreadyRegistered: "Чат уже существует"

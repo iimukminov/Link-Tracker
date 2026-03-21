@@ -2,10 +2,12 @@ package backend.academy.linktracker.bot;
 
 import static org.mockito.Mockito.*;
 
+import backend.academy.linktracker.bot.client.ScrapperClient;
+import backend.academy.linktracker.bot.client.TelegramSender;
 import backend.academy.linktracker.bot.command.impl.*;
+import backend.academy.linktracker.bot.constants.UserState;
 import backend.academy.linktracker.bot.properties.BotMessages;
-import backend.academy.linktracker.bot.sender.TelegramSender;
-import backend.academy.linktracker.bot.service.ScrapperClient;
+import backend.academy.linktracker.bot.service.UserStateService;
 import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
@@ -36,6 +38,9 @@ class CommandTest {
     @Mock
     ScrapperClient scrapperClient;
 
+    @Mock
+    UserStateService userStateService;
+
     private final long chatId = 123456L;
 
     @BeforeEach
@@ -50,9 +55,12 @@ class CommandTest {
         String expectedText = "mocked_start_message";
         when(messages.getStart()).thenReturn(expectedText);
 
-        StartCommand command = new StartCommand(sender, messages, scrapperClient);
+        StartCommand command = new StartCommand(sender, messages, scrapperClient, userStateService);
 
         command.execute(update.message());
+
+        verify(userStateService).setState(chatId, UserState.IDLE);
+        verify(userStateService).clearTempData(chatId);
 
         verify(sender).sendMessage(eq(chatId), eq(expectedText));
         verify(scrapperClient).registerChat(eq(chatId));
@@ -78,5 +86,47 @@ class CommandTest {
         command.execute(update.message());
 
         verify(sender).sendMessage(eq(chatId), eq(expectedText));
+    }
+
+    @Test
+    void trackCommand_positive_idle() {
+        when(userStateService.getState(chatId)).thenReturn(UserState.IDLE);
+        BotMessages.Track trackMessages = mock(BotMessages.Track.class);
+        when(messages.getTrack()).thenReturn(trackMessages);
+        when(trackMessages.getLinkRequest()).thenReturn("mocked_link_request");
+
+        TrackCommand command = new TrackCommand(sender, messages, userStateService);
+        command.execute(update.message());
+
+        verify(userStateService).setState(chatId, UserState.AWAITING_LINK);
+        verify(sender).sendMessage(eq(chatId), eq("mocked_link_request"));
+    }
+
+    @Test
+    void cancelCommand_positive() {
+        when(messages.getCancel()).thenReturn("mocked_cancel");
+
+        CancelCommand command = new CancelCommand(sender, messages, userStateService);
+        command.execute(update.message());
+
+        verify(userStateService).setState(chatId, UserState.IDLE);
+        verify(userStateService).clearTempData(chatId);
+        verify(sender).sendMessage(eq(chatId), eq("mocked_cancel"));
+    }
+
+    @Test
+    void untrackCommand_invalidFormat() {
+        when(message.text()).thenReturn("/untrack");
+
+        BotMessages.Untrack untrackMessages = mock(BotMessages.Untrack.class);
+        when(messages.getUntrack()).thenReturn(untrackMessages);
+        when(untrackMessages.getUsage()).thenReturn("mocked_usage");
+
+        UntrackCommand command = new UntrackCommand(sender, messages, scrapperClient, userStateService);
+        command.execute(update.message());
+
+        verify(userStateService).setState(chatId, UserState.IDLE);
+        verify(userStateService).clearTempData(chatId);
+        verify(sender).sendMessage(eq(chatId), eq("mocked_usage"));
     }
 }

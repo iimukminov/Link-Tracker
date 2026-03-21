@@ -21,24 +21,24 @@ public class InMemoryScrapperRepository {
 
     public void addChat(long chatId) {
         if (storage.putIfAbsent(chatId, ConcurrentHashMap.newKeySet()) != null) {
-            throw new ChatAlreadyRegisteredException("Чат уже существует");
+            throw new ChatAlreadyRegisteredException("Chat ID: " + chatId);
         }
     }
 
     public void removeChat(long chatId) {
         if (storage.remove(chatId) == null) {
-            throw new ChatNotFoundException();
+            throw new ChatNotFoundException("Chat ID: " + chatId);
         }
     }
 
     public LinkData addLink(long chatId, URI url, List<String> tags, List<String> filters) {
         Set<LinkData> links = storage.get(chatId);
         if (links == null) {
-            throw new ChatNotFoundException();
+            throw new ChatNotFoundException("Chat ID: " + chatId);
         }
 
         if (links.stream().anyMatch(l -> l.getUrl().equals(url))) {
-            throw new LinkAlreadyTrackedException("Ссылка уже отслеживается");
+            throw new LinkAlreadyTrackedException("Link: " + url);
         }
 
         LinkData newLink = new LinkData(idGenerator.getAndIncrement(), url, OffsetDateTime.now(), tags, filters);
@@ -49,19 +49,19 @@ public class InMemoryScrapperRepository {
     public void removeLink(long chatId, URI url) {
         Set<LinkData> links = storage.get(chatId);
         if (links == null) {
-            throw new ChatNotFoundException();
+            throw new ChatNotFoundException("Chat ID: " + chatId);
         }
 
         boolean removed = links.removeIf(l -> l.getUrl().equals(url));
 
         if (!removed) {
-            throw new LinkNotFoundException("Ссылка не найдена в списке отслеживания");
+            throw new LinkNotFoundException("Link: " + url);
         }
     }
 
     public Set<LinkData> getLinks(long chatId) {
         if (!storage.containsKey(chatId)) {
-            throw new ChatNotFoundException();
+            throw new ChatNotFoundException("Chat ID: " + chatId);
         }
         return storage.getOrDefault(chatId, Set.of());
     }

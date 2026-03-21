@@ -1,7 +1,6 @@
 package backend.academy.linktracker.bot.handlers;
 
 import backend.academy.linktracker.bot.command.CommandRegistry;
-import backend.academy.linktracker.bot.constants.UserState;
 import backend.academy.linktracker.bot.service.UserStateService;
 import com.pengrad.telegrambot.model.Message;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +20,7 @@ public class MessageHandler {
             return;
         }
 
-        long chatId = message.chat().id();
-
         if (message.text().startsWith("/")) {
-            userStateService.setState(chatId, UserState.IDLE);
-            userStateService.clearTempData(chatId);
             handleCommand(message);
         } else {
             handleNonCommand(message);

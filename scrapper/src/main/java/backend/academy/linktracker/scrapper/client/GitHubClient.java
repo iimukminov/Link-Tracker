@@ -1,24 +1,16 @@
-package backend.academy.linktracker.scrapper.service;
+package backend.academy.linktracker.scrapper.client;
 
 import backend.academy.linktracker.scrapper.dto.GitHubResponse;
-import backend.academy.linktracker.scrapper.properties.GithubProperties;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.RestClient;
 
-@Service
+@Slf4j
 public class GitHubClient {
     private final RestClient restClient;
 
-    public GitHubClient(
-            RestClient.Builder builder,
-            @Value("${app.github.base-url:https://api.github.com}") String url,
-            GithubProperties githubProperties) {
-        this.restClient = builder.baseUrl(url)
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + githubProperties.getToken())
-                .build();
+    public GitHubClient(RestClient restClient) {
+        this.restClient = restClient;
     }
 
     public Optional<GitHubResponse> fetchUpdate(String owner, String repo) {
@@ -30,6 +22,11 @@ public class GitHubClient {
                     .body(GitHubResponse.class);
             return Optional.ofNullable(response);
         } catch (Exception e) {
+            log.atError()
+                    .addKeyValue("owner", owner)
+                    .addKeyValue("repo", repo)
+                    .setCause(e)
+                    .log("Error fetching GitHub update");
             return Optional.empty();
         }
     }

@@ -10,7 +10,8 @@ public enum BotCommandType {
     START("/start", "Старт бота"),
     TRACK("/track", "Отслеживать ссылку"),
     UNTRACK("/untrack", "Прекратить отслеживание"),
-    LIST("/list", "Список отслеживаемых ссылок");
+    LIST("/list", "Список отслеживаемых ссылок"),
+    CANCEL("/cancel", "Отменить текущее действие");
 
     private final String name;
     private final String description;

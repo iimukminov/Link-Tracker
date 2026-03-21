@@ -1,19 +1,16 @@
-package backend.academy.linktracker.scrapper.service;
+package backend.academy.linktracker.scrapper.client;
 
 import backend.academy.linktracker.scrapper.dto.StackOverflowResponse;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.RestClient;
 
-@Service
+@Slf4j
 public class StackOverflowClient {
     private final RestClient restClient;
 
-    public StackOverflowClient(
-            RestClient.Builder builder,
-            @Value("${app.stackoverflow.base-url:https://api.stackexchange.com/2.2}") String url) {
-        this.restClient = builder.baseUrl(url).build();
+    public StackOverflowClient(RestClient restClient) {
+        this.restClient = restClient;
     }
 
     public Optional<StackOverflowResponse> fetchQuestion(long questionId) {
@@ -25,6 +22,10 @@ public class StackOverflowClient {
                     .body(StackOverflowResponse.class);
             return Optional.ofNullable(response);
         } catch (Exception e) {
+            log.atError()
+                    .addKeyValue("questionId", questionId)
+                    .setCause(e)
+                    .log("Error fetching StackOverflow question");
             return Optional.empty();
         }
     }

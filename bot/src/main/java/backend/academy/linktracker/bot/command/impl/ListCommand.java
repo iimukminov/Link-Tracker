@@ -1,12 +1,14 @@
 package backend.academy.linktracker.bot.command.impl;
 
+import backend.academy.linktracker.bot.client.ScrapperClient;
+import backend.academy.linktracker.bot.client.TelegramSender;
 import backend.academy.linktracker.bot.command.Command;
 import backend.academy.linktracker.bot.constants.BotCommandType;
-import backend.academy.linktracker.bot.dto.LinkResponse;
-import backend.academy.linktracker.bot.dto.ListLinksResponse;
+import backend.academy.linktracker.bot.constants.UserState;
 import backend.academy.linktracker.bot.properties.BotMessages;
-import backend.academy.linktracker.bot.sender.TelegramSender;
-import backend.academy.linktracker.bot.service.ScrapperClient;
+import backend.academy.linktracker.bot.service.UserStateService;
+import backend.academy.linktracker.scrapper.dto.LinkResponse; // Правильный импорт из контракта скраппера
+import backend.academy.linktracker.scrapper.dto.ListLinksResponse; // Правильный импорт из контракта скраппера
 import com.pengrad.telegrambot.model.Message;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +22,15 @@ public class ListCommand implements Command {
     private final TelegramSender sender;
     private final BotMessages messages;
     private final ScrapperClient scrapperClient;
+    private final UserStateService userStateService;
 
     @Override
     public void execute(Message message) {
         long chatId = message.chat().id();
+
+        userStateService.setState(chatId, UserState.IDLE);
+        userStateService.clearTempData(chatId);
+
         String text = message.text();
 
         String[] parts = text.split("\\s+");
@@ -31,11 +38,11 @@ public class ListCommand implements Command {
 
         try {
             ListLinksResponse response = scrapperClient.getLinks(chatId);
-            List<LinkResponse> links = response.links();
+            List<LinkResponse> links = response.getLinks();
 
             if (filterTag != null && links != null) {
                 links = links.stream()
-                        .filter(link -> link.tags() != null && link.tags().contains(filterTag))
+                        .filter(link -> link.getTags() != null && link.getTags().contains(filterTag))
                         .toList();
             }
 
@@ -47,10 +54,10 @@ public class ListCommand implements Command {
             StringBuilder sb = new StringBuilder(messages.getListMsg().getTitle()).append("\n\n");
             int index = 1;
             for (LinkResponse link : links) {
-                sb.append(index++).append(". ").append(link.url());
+                sb.append(index++).append(". ").append(link.getUrl());
 
-                if (link.tags() != null && !link.tags().isEmpty()) {
-                    sb.append(" [").append(String.join(", ", link.tags())).append("]");
+                if (link.getTags() != null && !link.getTags().isEmpty()) {
+                    sb.append(" [").append(String.join(", ", link.getTags())).append("]");
                 }
                 sb.append("\n");
             }
@@ -58,8 +65,12 @@ public class ListCommand implements Command {
             sender.sendMessage(chatId, sb.toString());
 
         } catch (Exception e) {
-            log.atError().setMessage("Error fetching links").setCause(e).log();
-            sender.sendMessage(chatId, "Произошла ошибка при получении списка ссылок.");
+            log.atError()
+                    .setMessage("Error fetching links")
+                    .addKeyValue("chatId", chatId)
+                    .setCause(e)
+                    .log();
+            sender.sendMessage(chatId, messages.getListMsg().getError());
         }
     }
 

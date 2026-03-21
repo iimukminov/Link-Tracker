@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.URL;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -18,4 +19,8 @@ public class GithubProperties {
 
     @NotEmpty
     private String token;
+
+    @NotEmpty
+    @URL
+    private String baseUrl;
 }

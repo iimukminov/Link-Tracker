@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: scrapper
+  config:
+    import:
+      - optional:file:scrapper/config/messages.yml
+      - optional:file:config/messages.yml
 
 app:
   bot:
@@ -12,9 +16,11 @@ app:
     enable: true
     interval: 10s
   stackoverflow:
+    base-url: https://api.stackexchange.com/2.2
     key: ${STACKOVERFLOW_KEY} # Use env variable. DO NOT KEEP TOKEN HERE
     access-token: ${STACKOVERFLOW_ACCESS_KEY} # Use env variable. DO NOT KEEP TOKEN HERE
   github:
+    base-url: https://api.github.com
     token: ${GITHUB_TOKEN} # Use env variable. DO NOT KEEP TOKEN HERE
 
 logging:

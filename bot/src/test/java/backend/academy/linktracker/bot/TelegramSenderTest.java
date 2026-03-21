@@ -2,7 +2,7 @@ package backend.academy.linktracker.bot;
 
 import static org.mockito.Mockito.*;
 
-import backend.academy.linktracker.bot.sender.TelegramSender;
+import backend.academy.linktracker.bot.client.TelegramSender;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.response.SendResponse;
 import org.junit.jupiter.api.Test;

@@ -26,6 +26,7 @@
 
     <modules>
         <module>ai-agent</module>
+        <module>api-contracts</module>
         <module>bot</module>
         <module>build-report-aggregate</module>
         <module>scrapper</module>

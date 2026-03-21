@@ -21,15 +21,18 @@ public class BotUpdateListener {
         log.atInfo().setMessage("Initializing BotUpdateListener").log();
 
         bot.setUpdatesListener(updates -> {
-            try {
-                for (Update update : updates) {
+            for (Update update : updates) {
+                try {
                     processUpdate(update);
+                } catch (Exception e) {
+                    log.atError()
+                            .setMessage("Error processing update")
+                            .addKeyValue("updateId", update.updateId())
+                            .setCause(e)
+                            .log();
                 }
-                return UpdatesListener.CONFIRMED_UPDATES_ALL;
-            } catch (Exception e) {
-                log.atError().setMessage("Error processing updates").setCause(e).log();
-                return UpdatesListener.CONFIRMED_UPDATES_ALL;
             }
+            return UpdatesListener.CONFIRMED_UPDATES_ALL;
         });
 
         log.atInfo().setMessage("BotUpdateListener ready").log();
