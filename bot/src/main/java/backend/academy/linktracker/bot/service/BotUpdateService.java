@@ -16,6 +16,14 @@ public class BotUpdateService {
     private final BotMessages messages;
 
     public void processUpdate(LinkUpdate linkUpdate) {
+        if (linkUpdate.getTgChatIds() == null || linkUpdate.getTgChatIds().isEmpty()) {
+            log.atWarn()
+                .setMessage("Received update with no target chat IDs")
+                .addKeyValue("link_id", linkUpdate.getId())
+                .log();
+            return;
+        }
+
         log.atInfo()
                 .setMessage("Received update from Scrapper")
                 .addKeyValue("link_id", linkUpdate.getId())

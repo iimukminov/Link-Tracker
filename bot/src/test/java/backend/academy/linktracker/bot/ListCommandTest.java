@@ -82,7 +82,6 @@ class ListCommandTest {
     void execute_hasSubscriptionsWithFilter_shouldSendFilteredList() {
         when(message.text()).thenReturn("/list java");
         when(listMessages.getTitle()).thenReturn("Links:");
-        when(listMessages.getEmpty()).thenReturn("mocked_empty_list");
 
         List<LinkResponse> links = List.of(
                 new LinkResponse().url(URI.create("https://github.com")).tags(List.of("python")),
