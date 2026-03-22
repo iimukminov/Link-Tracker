@@ -1,20 +1,23 @@
 package backend.academy.linktracker.scrapper.service;
 
-import backend.academy.linktracker.scrapper.repository.InMemoryScrapperRepository;
+import backend.academy.linktracker.scrapper.repository.ChatRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class TgChatService {
 
-    private final InMemoryScrapperRepository repository;
+    private final ChatRepository chatRepository;
 
+    @Transactional
     public void registerChat(Long id) {
-        repository.addChat(id);
+        chatRepository.save(id);
     }
 
+    @Transactional
     public void deleteChat(Long id) {
-        repository.removeChat(id);
+        chatRepository.deleteById(id);
     }
 }

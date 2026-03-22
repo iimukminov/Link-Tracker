@@ -9,6 +9,21 @@ spring:
       - optional:file:scrapper/config/messages.yml
       - optional:file:config/messages.yml
 
+  datasource:
+    url: jdbc:postgresql://localhost:54321/scrapper
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  liquibase:
+    enabled: false
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+
 app:
   bot:
     base-url: http://localhost:8080
@@ -22,6 +37,9 @@ app:
   github:
     base-url: https://api.github.com
     token: ${GITHUB_TOKEN} # Use env variable. DO NOT KEEP TOKEN HERE
+
+  database:
+    access-type: JPA # Переключатель: JDBC или JPA
 
 logging:
   pattern:
