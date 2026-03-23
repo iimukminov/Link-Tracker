@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
 @Transactional
-public abstract class AbstractDatabaseIntegrationTest {
+public abstract class AbstractDatabaseIT {
 
     @Autowired
     protected LinkService linkService;

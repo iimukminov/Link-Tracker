@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.web.client.RestClient;
 import org.testcontainers.containers.GenericContainer;
 
-@SpringBootTest
+@SpringBootTest(properties = "app.scheduler.enable=false")
 @Import(TestcontainersConfiguration.class)
 public class EndToEndIT {
 

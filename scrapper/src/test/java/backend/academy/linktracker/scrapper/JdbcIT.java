@@ -12,7 +12,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.TestPropertySource;
 
 @TestPropertySource(properties = "app.database.access-type=JDBC")
-public class JdbcIntegrationTest extends AbstractDatabaseIntegrationTest {
+public class JdbcIT extends AbstractDatabaseIT {
 
     @Autowired
     private ApplicationContext context;

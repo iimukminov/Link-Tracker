@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
 
 @Entity
 @Table(name = "chat")
@@ -23,6 +24,7 @@ public class ChatEntity {
     private Long id;
 
     @Column(name = "created_at", insertable = false, updatable = false, nullable = false)
+    @CreatedDate
     private OffsetDateTime createdAt;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})

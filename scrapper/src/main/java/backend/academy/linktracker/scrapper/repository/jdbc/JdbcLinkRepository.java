@@ -27,6 +27,14 @@ public class JdbcLinkRepository implements LinkRepository {
     @Override
     @Transactional
     public LinkData addLinkToChat(long chatId, URI url, List<String> tags) {
+
+        Boolean chatExists =
+                jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM chat WHERE id = ?)", Boolean.class, chatId);
+        if (chatExists == null || !chatExists) {
+            throw new backend.academy.linktracker.scrapper.exceptions.ChatNotFoundException(
+                    "Chat not found: " + chatId);
+        }
+
         String insertLinkSql =
                 "INSERT INTO link (url) VALUES (?) ON CONFLICT (url) DO UPDATE SET url = EXCLUDED.url RETURNING id";
         Long linkId = jdbcTemplate.queryForObject(insertLinkSql, Long.class, url.toString());
