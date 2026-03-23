@@ -7,11 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.RestClient;
 import org.testcontainers.containers.GenericContainer;
 
 @SpringBootTest(properties = "app.scheduler.enable=false")
 @Import(TestcontainersConfiguration.class)
+@ActiveProfiles("e2e")
 public class EndToEndIT {
 
     @Autowired

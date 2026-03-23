@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
@@ -55,6 +56,7 @@ public class TestcontainersConfiguration {
     }
 
     @Bean
+    @Profile("e2e")
     public GenericContainer<?> scrapperContainer(PostgreSQLContainer postgres) {
         return new GenericContainer<>(new ImageFromDockerfile("scrapper-it", false)
                         .withFileFromPath("app.jar", findJar("scrapper"))
@@ -82,6 +84,7 @@ public class TestcontainersConfiguration {
     }
 
     @Bean
+    @Profile("e2e")
     public GenericContainer<?> botContainer() {
         return new GenericContainer<>(new ImageFromDockerfile("bot-it", false)
                         .withFileFromPath("app.jar", findJar("bot"))
