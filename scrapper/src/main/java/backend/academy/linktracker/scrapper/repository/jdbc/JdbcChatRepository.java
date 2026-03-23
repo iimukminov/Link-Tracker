@@ -1,6 +1,7 @@
 package backend.academy.linktracker.scrapper.repository.jdbc;
 
 import backend.academy.linktracker.scrapper.exceptions.ChatAlreadyRegisteredException;
+import backend.academy.linktracker.scrapper.exceptions.ChatNotFoundException;
 import backend.academy.linktracker.scrapper.repository.ChatRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,10 @@ public class JdbcChatRepository implements ChatRepository {
 
     @Override
     public void deleteById(long chatId) {
+        if (!existsById(chatId)) {
+            throw new ChatNotFoundException("Chat with ID " + chatId + " not found");
+        }
+
         String sql = "DELETE FROM chat WHERE id = ?";
         jdbcTemplate.update(sql, chatId);
     }

@@ -2,6 +2,7 @@ package backend.academy.linktracker.scrapper.repository.jpa;
 
 import backend.academy.linktracker.scrapper.entity.ChatEntity;
 import backend.academy.linktracker.scrapper.exceptions.ChatAlreadyRegisteredException;
+import backend.academy.linktracker.scrapper.exceptions.ChatNotFoundException;
 import backend.academy.linktracker.scrapper.repository.ChatRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,9 @@ public class JpaChatRepository implements ChatRepository {
     @Override
     @Transactional
     public void deleteById(long chatId) {
+        if (!chatRepository.existsById(chatId)) {
+            throw new ChatNotFoundException("Chat with ID " + chatId + " not found");
+        }
         chatRepository.deleteById(chatId);
     }
 
