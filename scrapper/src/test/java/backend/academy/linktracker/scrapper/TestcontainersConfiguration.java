@@ -62,6 +62,7 @@ public class TestcontainersConfiguration {
             .withNetwork(NETWORK)
             .withNetworkAliases("scrapper")
             .withExposedPorts(8081)
+            .withEnv("SPRING_LIQUIBASE_ENABLED", "true")
             .withEnv("SPRING_DATASOURCE_URL", "jdbc:postgresql://postgres:5432/scrapper")
             .withEnv("SPRING_DATASOURCE_USERNAME", "postgres")
             .withEnv("SPRING_DATASOURCE_PASSWORD", "postgres")

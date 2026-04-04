@@ -63,6 +63,8 @@ services:
     depends_on:
       postgresql:
         condition: service_healthy
+      liquibase-migrations:
+        condition: service_completed_successfully
 
 volumes:
   pg_data:

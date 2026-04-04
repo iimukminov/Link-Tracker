@@ -16,7 +16,7 @@ spring:
     driver-class-name: org.postgresql.Driver
 
   liquibase:
-    enabled: true
+    enabled: false
     change-log: classpath:migrations/master.xml
 
   jpa:
