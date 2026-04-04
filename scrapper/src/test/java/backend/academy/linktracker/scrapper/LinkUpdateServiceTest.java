@@ -21,16 +21,24 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class LinkUpdateServiceTest {
 
-    @Mock private LinkRepository linkRepository;
-    @Mock private ChatRepository chatRepository;
-    @Mock private LinkHandler githubHandler;
-    @Mock private SchedulerProperties schedulerProperties;
+    @Mock
+    private LinkRepository linkRepository;
+
+    @Mock
+    private ChatRepository chatRepository;
+
+    @Mock
+    private LinkHandler githubHandler;
+
+    @Mock
+    private SchedulerProperties schedulerProperties;
 
     private LinkUpdateService linkUpdateService;
 
     @BeforeEach
     void setUp() {
-        linkUpdateService = new LinkUpdateService(linkRepository, chatRepository, List.of(githubHandler), schedulerProperties);
+        linkUpdateService =
+                new LinkUpdateService(linkRepository, chatRepository, List.of(githubHandler), schedulerProperties);
     }
 
     @Test
@@ -42,19 +50,21 @@ class LinkUpdateServiceTest {
         URI stackoverflowUrl = URI.create("https://stackoverflow.com/questions/123");
 
         LinkData githubLink = new LinkData(1L, githubUrl, OffsetDateTime.now().minusMinutes(15), List.of(), List.of());
-        LinkData soLink = new LinkData(2L, stackoverflowUrl, OffsetDateTime.now().minusMinutes(15), List.of(), List.of());
+        LinkData soLink =
+                new LinkData(2L, stackoverflowUrl, OffsetDateTime.now().minusMinutes(15), List.of(), List.of());
 
         when(linkRepository.findLinksToUpdate(any(OffsetDateTime.class), anyInt()))
-            .thenReturn(List.of(githubLink, soLink));
+                .thenReturn(List.of(githubLink, soLink));
         when(githubHandler.supports("github.com")).thenReturn(true);
         when(githubHandler.supports("stackoverflow.com")).thenReturn(false);
         when(chatRepository.findAllByLinkId(1L)).thenReturn(List.of(100L, 200L));
 
         linkUpdateService.updateLinks();
 
-        verify(githubHandler, times(1)).handle(
-            argThat(chatIds -> chatIds.size() == 2 && chatIds.containsAll(List.of(100L, 200L))),
-            eq(githubLink));
+        verify(githubHandler, times(1))
+                .handle(
+                        argThat(chatIds -> chatIds.size() == 2 && chatIds.containsAll(List.of(100L, 200L))),
+                        eq(githubLink));
         verify(githubHandler, never()).handle(argThat(ids -> ids.contains(300L)), any());
         verify(linkRepository, times(1)).updateLastUpdateTime(eq(1L), any());
         verify(linkRepository, times(1)).updateLastUpdateTime(eq(2L), any());

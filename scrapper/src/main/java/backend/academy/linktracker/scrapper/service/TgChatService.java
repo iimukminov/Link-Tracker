@@ -18,7 +18,8 @@ public class TgChatService {
     @Transactional
     public void registerChat(Long id) {
         if (chatRepository.existsById(id)) {
-            throw new ChatAlreadyRegisteredException(scrapperMessages.getErrors().getChatAlreadyRegistered());
+            throw new ChatAlreadyRegisteredException(
+                    scrapperMessages.getErrors().getChatAlreadyRegistered());
         }
         chatRepository.save(id);
     }

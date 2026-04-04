@@ -12,13 +12,16 @@ import org.springframework.data.repository.query.Param;
 
 public interface LinkJpaRepository extends JpaRepository<LinkEntity, Long> {
     Optional<LinkEntity> findByUrl(String url);
+
     @Query(value = """
     SELECT l.* FROM link l
     JOIN link_chat lc ON l.id = lc.link_id
     WHERE lc.chat_id = :chatId
     LIMIT :limit OFFSET :offset
     """, nativeQuery = true)
-    List<LinkEntity> findAllByChatsId(@Param("chatId") Long chatId, @Param("limit") int limit, @Param("offset") int offset);
+    List<LinkEntity> findAllByChatsId(
+            @Param("chatId") Long chatId, @Param("limit") int limit, @Param("offset") int offset);
+
     List<LinkEntity> findByLastUpdateBefore(OffsetDateTime time, Pageable pageable);
 
     boolean existsByChatsIdAndUrl(Long chatId, String url);

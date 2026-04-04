@@ -43,16 +43,17 @@ public class LinkRepositoryJpaAdapter implements LinkRepository {
 
         if (tags != null && !tags.isEmpty()) {
             List<TagEntity> existingTags = tagRepository.findAllByNameIn(tags);
-            List<String> existingTagNames = existingTags.stream().map(TagEntity::getName).toList();
+            List<String> existingTagNames =
+                    existingTags.stream().map(TagEntity::getName).toList();
 
             List<TagEntity> newTags = tags.stream()
-                .filter(t -> !existingTagNames.contains(t))
-                .map(name -> {
-                    TagEntity tag = new TagEntity();
-                    tag.setName(name);
-                    return tag;
-                })
-                .toList();
+                    .filter(t -> !existingTagNames.contains(t))
+                    .map(name -> {
+                        TagEntity tag = new TagEntity();
+                        tag.setName(name);
+                        return tag;
+                    })
+                    .toList();
 
             if (!newTags.isEmpty()) {
                 tagRepository.saveAll(newTags);
@@ -86,16 +87,16 @@ public class LinkRepositoryJpaAdapter implements LinkRepository {
         int actualOffset = Math.max(offset, 0);
 
         return linkRepository.findAllByChatsId(chatId, actualLimit, actualOffset).stream()
-            .map(this::mapToLinkData)
-            .toList();
+                .map(this::mapToLinkData)
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<LinkData> findLinksToUpdate(OffsetDateTime olderThan, int limit) {
         return linkRepository.findByLastUpdateBefore(olderThan, PageRequest.of(0, limit)).stream()
-            .map(this::mapToLinkData)
-            .toList();
+                .map(this::mapToLinkData)
+                .toList();
     }
 
     @Override

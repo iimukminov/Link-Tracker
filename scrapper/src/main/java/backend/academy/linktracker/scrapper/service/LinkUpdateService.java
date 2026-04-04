@@ -25,7 +25,8 @@ public class LinkUpdateService {
     @Transactional
     public void updateLinks() {
         OffsetDateTime thresholdTime = OffsetDateTime.now().minus(schedulerProperties.getForceCheckDelay());
-        List<LinkData> linksToUpdate = linkRepository.findLinksToUpdate(thresholdTime, schedulerProperties.getBatchSize());
+        List<LinkData> linksToUpdate =
+                linkRepository.findLinksToUpdate(thresholdTime, schedulerProperties.getBatchSize());
 
         for (LinkData linkData : linksToUpdate) {
             processLink(linkData);

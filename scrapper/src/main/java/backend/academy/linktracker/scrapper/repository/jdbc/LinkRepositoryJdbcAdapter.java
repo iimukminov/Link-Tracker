@@ -26,7 +26,8 @@ public class LinkRepositoryJdbcAdapter implements LinkRepository {
 
     @Override
     public boolean isLinkedToChat(long chatId, URI url) {
-        String checkSql = "SELECT EXISTS(SELECT 1 FROM link_chat lc JOIN link l ON lc.link_id = l.id WHERE lc.chat_id = ? AND l.url = ?)";
+        String checkSql =
+                "SELECT EXISTS(SELECT 1 FROM link_chat lc JOIN link l ON lc.link_id = l.id WHERE lc.chat_id = ? AND l.url = ?)";
         Boolean exists = jdbcTemplate.queryForObject(checkSql, Boolean.class, chatId, url.toString());
         return exists != null && exists;
     }
@@ -34,7 +35,8 @@ public class LinkRepositoryJdbcAdapter implements LinkRepository {
     @Override
     @Transactional
     public LinkData addLinkToChat(long chatId, URI url, List<String> tags) {
-        String insertLinkSql = "INSERT INTO link (url) VALUES (?) ON CONFLICT (url) DO UPDATE SET url = EXCLUDED.url RETURNING id";
+        String insertLinkSql =
+                "INSERT INTO link (url) VALUES (?) ON CONFLICT (url) DO UPDATE SET url = EXCLUDED.url RETURNING id";
         Long linkId = jdbcTemplate.queryForObject(insertLinkSql, Long.class, url.toString());
 
         String insertLinkChatSql = "INSERT INTO link_chat (chat_id, link_id) VALUES (?, ?) ON CONFLICT DO NOTHING";
@@ -47,19 +49,26 @@ public class LinkRepositoryJdbcAdapter implements LinkRepository {
                 public void setValues(PreparedStatement ps, int i) throws SQLException {
                     ps.setString(1, tags.get(i));
                 }
+
                 @Override
-                public int getBatchSize() { return tags.size(); }
+                public int getBatchSize() {
+                    return tags.size();
+                }
             });
 
-            String insertLinkTagSql = "INSERT INTO link_tag (link_id, tag_id) SELECT ?, id FROM tag WHERE name = ? ON CONFLICT DO NOTHING";
+            String insertLinkTagSql =
+                    "INSERT INTO link_tag (link_id, tag_id) SELECT ?, id FROM tag WHERE name = ? ON CONFLICT DO NOTHING";
             jdbcTemplate.batchUpdate(insertLinkTagSql, new BatchPreparedStatementSetter() {
                 @Override
                 public void setValues(PreparedStatement ps, int i) throws SQLException {
                     ps.setLong(1, linkId);
                     ps.setString(2, tags.get(i));
                 }
+
                 @Override
-                public int getBatchSize() { return tags.size(); }
+                public int getBatchSize() {
+                    return tags.size();
+                }
             });
         }
 
@@ -126,11 +135,11 @@ public class LinkRepositoryJdbcAdapter implements LinkRepository {
             }
 
             return new LinkData(
-                rs.getLong("id"),
-                URI.create(rs.getString("url")),
-                rs.getObject("last_update", OffsetDateTime.class),
-                tags,
-                List.of());
+                    rs.getLong("id"),
+                    URI.create(rs.getString("url")),
+                    rs.getObject("last_update", OffsetDateTime.class),
+                    tags,
+                    List.of());
         }
     }
 }

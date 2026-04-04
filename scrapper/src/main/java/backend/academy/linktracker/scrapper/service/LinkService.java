@@ -35,12 +35,12 @@ public class LinkService {
         int limit = linkProperties.limit();
 
         List<LinkResponse> links = linkRepository.findAllByChatId(tgChatId, limit, 0).stream()
-            .map(data -> new LinkResponse()
-                .id(data.getId())
-                .url(data.getUrl())
-                .tags(data.getTags() != null ? data.getTags() : List.of())
-                .filters(data.getFilters() != null ? data.getFilters() : List.of()))
-            .toList();
+                .map(data -> new LinkResponse()
+                        .id(data.getId())
+                        .url(data.getUrl())
+                        .tags(data.getTags() != null ? data.getTags() : List.of())
+                        .filters(data.getFilters() != null ? data.getFilters() : List.of()))
+                .toList();
 
         return new ListLinksResponse().links(links).size(links.size());
     }
@@ -56,13 +56,13 @@ public class LinkService {
         }
 
         LinkData linkData = linkRepository.addLinkToChat(
-            tgChatId, request.getLink(), request.getTags() != null ? request.getTags() : List.of());
+                tgChatId, request.getLink(), request.getTags() != null ? request.getTags() : List.of());
 
         return new LinkResponse()
-            .id(linkData.getId())
-            .url(linkData.getUrl())
-            .tags(linkData.getTags() != null ? linkData.getTags() : List.of())
-            .filters(List.of());
+                .id(linkData.getId())
+                .url(linkData.getUrl())
+                .tags(linkData.getTags() != null ? linkData.getTags() : List.of())
+                .filters(List.of());
     }
 
     @Transactional
