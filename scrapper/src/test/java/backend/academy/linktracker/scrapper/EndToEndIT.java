@@ -30,7 +30,7 @@ public class EndToEndIT {
         RestClient scrapperClient = RestClient.create(scrapperUrl);
 
         var scrapperResponse =
-                scrapperClient.post().uri("/tg-chat/1").retrieve().toBodilessEntity();
+            scrapperClient.post().uri("/tg-chat/1").retrieve().toBodilessEntity();
         assertEquals(200, scrapperResponse.getStatusCode().value(), "Scrapper должен вернуть 200 OK");
 
         String botUrl = "http://" + botContainer.getHost() + ":" + botContainer.getMappedPort(8080);
@@ -46,12 +46,12 @@ public class EndToEndIT {
                 """;
 
         var botResponse = botClient
-                .post()
-                .uri("/updates")
-                .header("Content-Type", "application/json")
-                .body(updateJson)
-                .retrieve()
-                .toBodilessEntity();
+            .post()
+            .uri("/updates")
+            .header("Content-Type", "application/json")
+            .body(updateJson)
+            .retrieve()
+            .toBodilessEntity();
 
         assertEquals(200, botResponse.getStatusCode().value(), "Bot должен принять апдейт и вернуть 200 OK");
     }

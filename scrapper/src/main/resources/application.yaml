@@ -10,12 +10,15 @@ spring:
       - optional:file:config/messages.yml
 
   datasource:
-    url: jdbc:postgresql://localhost:54321/scrapper
-    username: postgres
-    password: postgres
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
   liquibase:
-    enabled: false
+    enabled: true
+    change-log: classpath:migrations/master.xml
+
   jpa:
     open-in-view: false
     hibernate:
@@ -30,17 +33,21 @@ app:
   scheduler:
     enable: true
     interval: 10s
+    force-check-delay: 10m
+    batch-size: 50
+
+  links:
+    limit: 100
+
   stackoverflow:
     base-url: https://api.stackexchange.com/2.2
-    key: ${STACKOVERFLOW_KEY} # Use env variable. DO NOT KEEP TOKEN HERE
-    access-token: ${STACKOVERFLOW_ACCESS_KEY} # Use env variable. DO NOT KEEP TOKEN HERE
+    key: ${STACKOVERFLOW_KEY}
+    access-token: ${STACKOVERFLOW_ACCESS_KEY}
+
   github:
     base-url: https://api.github.com
-    token: ${GITHUB_TOKEN} # Use env variable. DO NOT KEEP TOKEN HERE
+    token: ${GITHUB_TOKEN}
 
   database:
-    access-type: JPA # Переключатель: JDBC или JPA
-
-logging:
-  pattern:
-    console: "%clr(%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}){faint} %clr(%5p) %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m %clr(%kvp){yellow}%n%wEx"
+    #SQL или ORM
+    access-type: ORM

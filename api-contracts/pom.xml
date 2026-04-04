@@ -57,6 +57,9 @@
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
                 <version>7.4.0</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
                 <executions>
                     <execution>
                         <id>generate-bot-api</id>
@@ -64,7 +67,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/bot-api.yaml</inputSpec>
+                            <inputSpec>src/main/resources/bot-api.yaml</inputSpec>
                             <generatorName>spring</generatorName>
                             <apiPackage>backend.academy.linktracker.bot.api</apiPackage>
                             <modelPackage>backend.academy.linktracker.bot.dto</modelPackage>
@@ -82,7 +85,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/scrapper-api.yaml</inputSpec>
+                            <inputSpec>src/main/resources/scrapper-api.yaml</inputSpec>
                             <generatorName>spring</generatorName>
                             <apiPackage>backend.academy.linktracker.scrapper.api</apiPackage>
                             <modelPackage>backend.academy.linktracker.scrapper.dto</modelPackage>

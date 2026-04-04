@@ -1,10 +1,9 @@
 package backend.academy.linktracker.scrapper.repository.jdbc;
 
-import backend.academy.linktracker.scrapper.exceptions.LinkAlreadyTrackedException;
-import backend.academy.linktracker.scrapper.exceptions.LinkNotFoundException;
 import backend.academy.linktracker.scrapper.model.LinkData;
 import backend.academy.linktracker.scrapper.repository.LinkRepository;
 import java.net.URI;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
@@ -12,52 +11,56 @@ import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-@ConditionalOnProperty(prefix = "app.database", name = "access-type", havingValue = "JDBC")
+@ConditionalOnProperty(prefix = "app.database", name = "access-type", havingValue = "SQL")
 @RequiredArgsConstructor
-public class JdbcLinkRepository implements LinkRepository {
+public class LinkRepositoryJdbcAdapter implements LinkRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
     @Override
+    public boolean isLinkedToChat(long chatId, URI url) {
+        String checkSql = "SELECT EXISTS(SELECT 1 FROM link_chat lc JOIN link l ON lc.link_id = l.id WHERE lc.chat_id = ? AND l.url = ?)";
+        Boolean exists = jdbcTemplate.queryForObject(checkSql, Boolean.class, chatId, url.toString());
+        return exists != null && exists;
+    }
+
+    @Override
     @Transactional
     public LinkData addLinkToChat(long chatId, URI url, List<String> tags) {
-
-        Boolean chatExists =
-                jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM chat WHERE id = ?)", Boolean.class, chatId);
-        if (chatExists == null || !chatExists) {
-            throw new backend.academy.linktracker.scrapper.exceptions.ChatNotFoundException(
-                    "Chat not found: " + chatId);
-        }
-
-        String insertLinkSql =
-                "INSERT INTO link (url) VALUES (?) ON CONFLICT (url) DO UPDATE SET url = EXCLUDED.url RETURNING id";
+        String insertLinkSql = "INSERT INTO link (url) VALUES (?) ON CONFLICT (url) DO UPDATE SET url = EXCLUDED.url RETURNING id";
         Long linkId = jdbcTemplate.queryForObject(insertLinkSql, Long.class, url.toString());
-
-        String checkSql = "SELECT EXISTS(SELECT 1 FROM link_chat WHERE chat_id = ? AND link_id = ?)";
-        Boolean alreadyExists = jdbcTemplate.queryForObject(checkSql, Boolean.class, chatId, linkId);
-
-        if (alreadyExists != null && alreadyExists) {
-            throw new LinkAlreadyTrackedException("Link is already tracked by this chat: " + url);
-        }
 
         String insertLinkChatSql = "INSERT INTO link_chat (chat_id, link_id) VALUES (?, ?) ON CONFLICT DO NOTHING";
         jdbcTemplate.update(insertLinkChatSql, chatId, linkId);
 
         if (tags != null && !tags.isEmpty()) {
-            for (String tag : tags) {
-                String insertTagSql =
-                        "INSERT INTO tag (name) VALUES (?) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id";
-                Long tagId = jdbcTemplate.queryForObject(insertTagSql, Long.class, tag);
+            String insertTagSql = "INSERT INTO tag (name) VALUES (?) ON CONFLICT (name) DO NOTHING";
+            jdbcTemplate.batchUpdate(insertTagSql, new BatchPreparedStatementSetter() {
+                @Override
+                public void setValues(PreparedStatement ps, int i) throws SQLException {
+                    ps.setString(1, tags.get(i));
+                }
+                @Override
+                public int getBatchSize() { return tags.size(); }
+            });
 
-                String insertLinkTagSql = "INSERT INTO link_tag (link_id, tag_id) VALUES (?, ?) ON CONFLICT DO NOTHING";
-                jdbcTemplate.update(insertLinkTagSql, linkId, tagId);
-            }
+            String insertLinkTagSql = "INSERT INTO link_tag (link_id, tag_id) SELECT ?, id FROM tag WHERE name = ? ON CONFLICT DO NOTHING";
+            jdbcTemplate.batchUpdate(insertLinkTagSql, new BatchPreparedStatementSetter() {
+                @Override
+                public void setValues(PreparedStatement ps, int i) throws SQLException {
+                    ps.setLong(1, linkId);
+                    ps.setString(2, tags.get(i));
+                }
+                @Override
+                public int getBatchSize() { return tags.size(); }
+            });
         }
 
         return new LinkData(linkId, url, OffsetDateTime.now(), tags, List.of());
@@ -69,15 +72,9 @@ public class JdbcLinkRepository implements LinkRepository {
         String findLinkIdSql = "SELECT id FROM link WHERE url = ?";
         List<Long> linkIds = jdbcTemplate.query(findLinkIdSql, (rs, rowNum) -> rs.getLong("id"), url.toString());
 
-        if (linkIds.isEmpty()) {
-            throw new LinkNotFoundException("Link not found: " + url);
-        }
-
-        String deleteSql = "DELETE FROM link_chat WHERE chat_id = ? AND link_id = ?";
-        int removed = jdbcTemplate.update(deleteSql, chatId, linkIds.get(0));
-
-        if (removed == 0) {
-            throw new LinkNotFoundException("You are not subscribed to: " + url);
+        if (!linkIds.isEmpty()) {
+            String deleteSql = "DELETE FROM link_chat WHERE chat_id = ? AND link_id = ?";
+            jdbcTemplate.update(deleteSql, chatId, linkIds.get(0));
         }
     }
 
@@ -129,11 +126,11 @@ public class JdbcLinkRepository implements LinkRepository {
             }
 
             return new LinkData(
-                    rs.getLong("id"),
-                    URI.create(rs.getString("url")),
-                    rs.getObject("last_update", OffsetDateTime.class),
-                    tags,
-                    List.of());
+                rs.getLong("id"),
+                URI.create(rs.getString("url")),
+                rs.getObject("last_update", OffsetDateTime.class),
+                tags,
+                List.of());
         }
     }
 }

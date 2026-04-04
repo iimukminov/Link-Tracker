@@ -1,7 +1,9 @@
 package backend.academy.linktracker.scrapper.properties;
 
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.time.Duration;
+import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -16,7 +18,10 @@ import org.springframework.validation.annotation.Validated;
 public class SchedulerProperties {
 
     private boolean enable;
-
     @NotNull
     private Duration interval;
+    @NotNull
+    private Duration forceCheckDelay;
+    @Positive
+    private int batchSize;
 }

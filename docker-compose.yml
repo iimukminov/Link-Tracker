@@ -37,6 +37,23 @@ services:
     networks:
       - backend
 
+  bot:
+    build:
+      dockerfile: bot/Dockerfile
+    container_name: link_tracker_bot
+    volumes:
+      - ./bot/config/messages.yml
+    env_file:
+      - .env
+
+  scrapper:
+    build:
+      dockerfile: scrapper/Dockerfile
+    container_name: link_tracker_scrapper
+    volumes:
+      - ./scrapper/config/messages.yml
+    env_file:
+      - .env
 volumes:
   pg_data:
 

@@ -9,11 +9,11 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-@ConditionalOnProperty(prefix = "app.database", name = "access-type", havingValue = "JPA")
+@ConditionalOnProperty(prefix = "app.database", name = "access-type", havingValue = "ORM")
 @RequiredArgsConstructor
-public class JpaTagRepository implements TagRepository {
+public class TagRepositoryJpaAdapter implements TagRepository {
 
-    private final SpringDataTagRepository tagRepository;
+    private final TagJpaRepository tagRepository;
 
     @Override
     @Transactional

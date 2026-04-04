@@ -4,4 +4,13 @@ spring:
     change-log: classpath:migrations/master.xml
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
+
+app:
+  github:
+    token: mock-token
+  stackoverflow:
+    key: mock-key
+    access-token: mock-token
+  scheduler:
+    enable: false

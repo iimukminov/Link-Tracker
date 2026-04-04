@@ -8,9 +8,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnProperty(prefix = "app.database", name = "access-type", havingValue = "JDBC")
+@ConditionalOnProperty(prefix = "app.database", name = "access-type", havingValue = "SQL")
 @RequiredArgsConstructor
-public class JdbcTagRepository implements TagRepository {
+public class TagRepositoryJdbcAdapter implements TagRepository {
 
     private final JdbcTemplate jdbcTemplate;
 

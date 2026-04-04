@@ -14,5 +14,7 @@ public interface LinkRepository {
 
     List<LinkData> findLinksToUpdate(OffsetDateTime olderThan, int limit);
 
+    boolean isLinkedToChat(long chatId, URI url);
+
     void updateLastUpdateTime(long linkId, OffsetDateTime lastUpdate);
 }
