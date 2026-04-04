@@ -3,15 +3,15 @@ services:
     image: postgres:16-alpine
     container_name: link_tracker_db
     environment:
-      POSTGRES_DB: scrapper
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "54321:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d scrapper"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -28,9 +28,9 @@ services:
       - --searchPath=/changesets
       - --changelog-file=master.xml
       - --driver=org.postgresql.Driver
-      - --url=jdbc:postgresql://postgresql:5432/scrapper
-      - --username=postgres
-      - --password=postgres
+      - --url=${SPRING_DATASOURCE_URL}
+      - --username=${SPRING_DATASOURCE_USERNAME}
+      - --password=${SPRING_DATASOURCE_PASSWORD}
       - update
     volumes:
       - ./migrations:/changesets
@@ -42,18 +42,28 @@ services:
       dockerfile: bot/Dockerfile
     container_name: link_tracker_bot
     volumes:
-      - ./bot/config/messages.yml
+      - ./bot/config/messages.yml:/app/config/messages.yml
     env_file:
       - .env
+    networks:
+      - backend
+    depends_on:
+      - scrapper
 
   scrapper:
     build:
       dockerfile: scrapper/Dockerfile
     container_name: link_tracker_scrapper
     volumes:
-      - ./scrapper/config/messages.yml
+      - ./scrapper/config/messages.yml:/app/config/messages.yml
     env_file:
       - .env
+    networks:
+      - backend
+    depends_on:
+      postgresql:
+        condition: service_healthy
+
 volumes:
   pg_data:
 

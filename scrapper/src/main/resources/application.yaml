@@ -29,7 +29,7 @@ spring:
 
 app:
   bot:
-    base-url: http://localhost:8080
+    base-url: ${BOT_URL:http://localhost:8080}
   scheduler:
     enable: true
     interval: 10s

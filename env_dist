@@ -1,6 +1,21 @@
-TELEGRAM_TOKEN=81*********bD27nyo
-SCRAPPER_URL=http://scrapper:8000
+# Телеграм
+TELEGRAM_BOT_TOKEN=81*********bD27nyo
+
+# Сеть Docker (алиасы из docker-compose)
+SCRAPPER_URL=http://scrapper:8081
 BOT_URL=http://bot:8080
+
+# Внешние API
 GITHUB_TOKEN=ghp_************Y2QpOXv
 STACKOVERFLOW_KEY=rl_Sn*****************Ydzh
 STACKOVERFLOW_ACCESS_KEY=Qc**********sHSQ))
+
+# База данных PostgreSQL (для инициализации контейнера)
+POSTGRES_DB=scrapper
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+
+# База данных для Scrapper и Liquibase
+SPRING_DATASOURCE_URL=jdbc:postgresql://postgresql:5432/scrapper
+SPRING_DATASOURCE_USERNAME=postgres
+SPRING_DATASOURCE_PASSWORD=postgres

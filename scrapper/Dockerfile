@@ -7,21 +7,25 @@ COPY bot/pom.xml bot/
 COPY scrapper/pom.xml scrapper/
 COPY ai-agent/pom.xml ai-agent/
 COPY build-report-aggregate/pom.xml build-report-aggregate/
+COPY api-contracts/pom.xml api-contracts/
+COPY api-contracts/src api-contracts/src
 
+# Скачиваем зависимости только для scrapper
 RUN --mount=type=cache,target=/root/.m2 \
     mvn dependency:go-offline -pl scrapper -am
 
+# Копируем исходники и собираем
 COPY scrapper/src scrapper/src
-
 RUN --mount=type=cache,target=/root/.m2 \
     mvn clean package -pl scrapper -am -DskipTests
 
-
+# --- Слой распаковки ---
 FROM eclipse-temurin:25-jre-alpine AS extractor
 WORKDIR /app
 COPY --from=builder /app/scrapper/target/*.jar app.jar
 RUN java -Djarmode=layertools -jar app.jar extract
 
+# --- Финальный образ ---
 FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
 
