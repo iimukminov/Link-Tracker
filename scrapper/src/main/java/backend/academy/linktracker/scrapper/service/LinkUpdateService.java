@@ -7,15 +7,14 @@ import backend.academy.linktracker.scrapper.properties.SchedulerProperties;
 import backend.academy.linktracker.scrapper.properties.ScrapperMessages;
 import backend.academy.linktracker.scrapper.repository.ChatRepository;
 import backend.academy.linktracker.scrapper.repository.LinkRepository;
+import backend.academy.linktracker.scrapper.service.sender.MessageSender;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import backend.academy.linktracker.scrapper.service.sender.MessageSender;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -30,17 +29,16 @@ public class LinkUpdateService {
     private final MessageSender messageSender;
     private final ScrapperMessages scrapperMessages;
 
-    @Transactional
     public void updateLinks() {
         OffsetDateTime thresholdTime = OffsetDateTime.now().minus(schedulerProperties.getForceCheckDelay());
         List<LinkData> linksToUpdate =
-            linkRepository.findLinksToUpdate(thresholdTime, schedulerProperties.getBatchSize());
+                linkRepository.findLinksToUpdate(thresholdTime, schedulerProperties.getBatchSize());
 
         if (linksToUpdate.isEmpty()) return;
 
         List<CompletableFuture<Void>> futures = linksToUpdate.stream()
-            .map(linkData -> CompletableFuture.runAsync(() -> processLink(linkData), linkUpdateExecutor))
-            .toList();
+                .map(linkData -> CompletableFuture.runAsync(() -> processLink(linkData), linkUpdateExecutor))
+                .toList();
 
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
     }
@@ -63,16 +61,11 @@ public class LinkUpdateService {
             }
 
             if (!isHandled) {
-                log.atWarn()
-                    .addKeyValue("host", host)
-                    .log("No handler found for host");
+                log.atWarn().addKeyValue("host", host).log("No handler found for host");
             }
 
         } catch (Exception e) {
-            log.atError()
-                .addKeyValue("url", linkData.getUrl())
-                .setCause(e)
-                .log("Failed to process link");
+            log.atError().addKeyValue("url", linkData.getUrl()).setCause(e).log("Failed to process link");
             reportError(linkData);
         } finally {
             linkRepository.updateLastUpdateTime(linkData.getId(), OffsetDateTime.now());
@@ -83,10 +76,10 @@ public class LinkUpdateService {
         List<Long> chatIds = chatRepository.findAllByLinkId(linkData.getId());
         if (!chatIds.isEmpty()) {
             messageSender.send(new LinkUpdate()
-                .id(linkData.getId())
-                .url(linkData.getUrl())
-                .description(scrapperMessages.getErrors().getProcessingError())
-                .tgChatIds(chatIds));
+                    .id(linkData.getId())
+                    .url(linkData.getUrl())
+                    .description(scrapperMessages.getErrors().getProcessingError())
+                    .tgChatIds(chatIds));
         }
     }
 }

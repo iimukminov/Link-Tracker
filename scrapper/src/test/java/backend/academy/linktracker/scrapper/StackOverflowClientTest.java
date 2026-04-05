@@ -1,22 +1,21 @@
 package backend.academy.linktracker.scrapper;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import backend.academy.linktracker.scrapper.client.StackOverflowClient;
 import backend.academy.linktracker.scrapper.dto.StackOverflowResponse;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestClient;
-
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.Optional;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class StackOverflowClientTest {
 
@@ -25,11 +24,13 @@ public class StackOverflowClientTest {
 
     @BeforeAll
     static void setUp() {
-        wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().dynamicPort());
+        wireMockServer =
+                new WireMockServer(WireMockConfiguration.wireMockConfig().dynamicPort());
         wireMockServer.start();
         WireMock.configureFor("localhost", wireMockServer.port());
 
-        RestClient restClient = RestClient.builder().baseUrl(wireMockServer.baseUrl()).build();
+        RestClient restClient =
+                RestClient.builder().baseUrl(wireMockServer.baseUrl()).build();
         stackOverflowClient = new StackOverflowClient(restClient);
     }
 
@@ -61,13 +62,13 @@ public class StackOverflowClientTest {
             """;
 
         stubFor(get(urlPathEqualTo("/questions/" + questionId + "/answers"))
-            .withQueryParam("site", equalTo("stackoverflow"))
-            .withQueryParam("fromdate", equalTo(String.valueOf(fromDateSeconds)))
-            .withQueryParam("filter", equalTo("withbody"))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", "application/json")
-                .withBody(responseBody)));
+                .withQueryParam("site", equalTo("stackoverflow"))
+                .withQueryParam("fromdate", equalTo(String.valueOf(fromDateSeconds)))
+                .withQueryParam("filter", equalTo("withbody"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(responseBody)));
 
         Optional<StackOverflowResponse> responseOpt = stackOverflowClient.fetchNewAnswers(questionId, fromDate);
 
@@ -88,7 +89,7 @@ public class StackOverflowClientTest {
         OffsetDateTime fromDate = OffsetDateTime.now();
 
         stubFor(get(urlPathEqualTo("/questions/" + questionId + "/answers"))
-            .willReturn(aResponse().withStatus(500)));
+                .willReturn(aResponse().withStatus(500)));
 
         Optional<StackOverflowResponse> responseOpt = stackOverflowClient.fetchNewAnswers(questionId, fromDate);
 
@@ -117,10 +118,10 @@ public class StackOverflowClientTest {
             """;
 
         stubFor(get(urlPathEqualTo("/questions/" + questionId + "/comments"))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", "application/json")
-                .withBody(responseBody)));
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(responseBody)));
 
         Optional<StackOverflowResponse> responseOpt = stackOverflowClient.fetchNewComments(questionId, fromDate);
 
@@ -147,10 +148,10 @@ public class StackOverflowClientTest {
             """;
 
         stubFor(get(urlPathEqualTo("/questions/" + questionId))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", "application/json")
-                .withBody(responseBody)));
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(responseBody)));
 
         Optional<StackOverflowResponse> responseOpt = stackOverflowClient.fetchQuestion(questionId);
 

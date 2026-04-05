@@ -1,26 +1,25 @@
 package backend.academy.linktracker.scrapper;
 
-import backend.academy.linktracker.scrapper.client.GitHubClient;
-import backend.academy.linktracker.scrapper.dto.GitHubIssueResponse;
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.web.client.RestClient;
-
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.List;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+
+import backend.academy.linktracker.scrapper.client.GitHubClient;
+import backend.academy.linktracker.scrapper.dto.GitHubIssueResponse;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.web.client.RestClient;
 
 public class GitHubClientTest {
 
@@ -29,11 +28,13 @@ public class GitHubClientTest {
 
     @BeforeAll
     static void setUp() {
-        wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().dynamicPort());
+        wireMockServer =
+                new WireMockServer(WireMockConfiguration.wireMockConfig().dynamicPort());
         wireMockServer.start();
         WireMock.configureFor("localhost", wireMockServer.port());
 
-        RestClient restClient = RestClient.builder().baseUrl(wireMockServer.baseUrl()).build();
+        RestClient restClient =
+                RestClient.builder().baseUrl(wireMockServer.baseUrl()).build();
         gitHubClient = new GitHubClient(restClient);
     }
 
@@ -65,12 +66,12 @@ public class GitHubClientTest {
             """;
 
         stubFor(get(urlPathEqualTo(String.format("/repos/%s/%s/issues", owner, repo)))
-            .withQueryParam("since", equalTo(since.toString()))
-            .withQueryParam("state", equalTo("all"))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", "application/json")
-                .withBody(responseBody)));
+                .withQueryParam("since", equalTo(since.toString()))
+                .withQueryParam("state", equalTo("all"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(responseBody)));
 
         List<GitHubIssueResponse> issues = gitHubClient.fetchIssuesSince(owner, repo, since);
 
@@ -90,7 +91,7 @@ public class GitHubClientTest {
         OffsetDateTime since = OffsetDateTime.now();
 
         stubFor(get(urlPathEqualTo(String.format("/repos/%s/%s/issues", owner, repo)))
-            .willReturn(aResponse().withStatus(500)));
+                .willReturn(aResponse().withStatus(500)));
 
         List<GitHubIssueResponse> issues = gitHubClient.fetchIssuesSince(owner, repo, since);
 

@@ -5,10 +5,10 @@ import backend.academy.linktracker.scrapper.client.GitHubClient;
 import backend.academy.linktracker.scrapper.dto.GitHubIssueResponse;
 import backend.academy.linktracker.scrapper.handler.LinkHandler;
 import backend.academy.linktracker.scrapper.model.LinkData;
-import java.time.OffsetDateTime;
-import java.util.List;
 import backend.academy.linktracker.scrapper.properties.ScrapperMessages;
 import backend.academy.linktracker.scrapper.service.sender.MessageSender;
+import java.time.OffsetDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -44,25 +44,24 @@ public class GitHubLinkHandler implements LinkHandler {
 
                 for (GitHubIssueResponse issue : newIssues) {
                     log.atInfo()
-                        .addKeyValue("repo", repo)
-                        .addKeyValue("issue_id", issue.id())
-                        .log("New Issue/PR found in Github");
+                            .addKeyValue("repo", repo)
+                            .addKeyValue("issue_id", issue.id())
+                            .log("New Issue/PR found in Github");
 
                     String preview = truncateBody(issue.body());
 
                     String description = String.format(
-                        scrapperMessages.getUpdates().getGithubUpdate(),
-                        issue.title(),
-                        issue.user() != null ? issue.user().login() : "Unknown",
-                        issue.createdAt(),
-                        preview
-                    );
+                            scrapperMessages.getUpdates().getGithubUpdate(),
+                            issue.title(),
+                            issue.user() != null ? issue.user().login() : "Unknown",
+                            issue.createdAt(),
+                            preview);
 
                     messageSender.send(new LinkUpdate()
-                        .id(linkData.getId())
-                        .url(linkData.getUrl())
-                        .description(description)
-                        .tgChatIds(chatIds));
+                            .id(linkData.getId())
+                            .url(linkData.getUrl())
+                            .description(description)
+                            .tgChatIds(chatIds));
 
                     if (issue.createdAt() != null && issue.createdAt().isAfter(maxUpdate)) {
                         maxUpdate = issue.createdAt();

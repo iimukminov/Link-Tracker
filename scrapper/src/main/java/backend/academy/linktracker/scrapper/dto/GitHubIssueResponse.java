@@ -9,7 +9,6 @@ public record GitHubIssueResponse(
         @JsonProperty("html_url") String htmlUrl,
         @JsonProperty("created_at") OffsetDateTime createdAt,
         String body,
-        User user
-) {
+        User user) {
     public record User(String login) {}
 }

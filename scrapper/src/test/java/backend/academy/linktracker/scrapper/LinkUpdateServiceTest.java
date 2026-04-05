@@ -64,14 +64,13 @@ class LinkUpdateServiceTest {
         linkUpdateExecutor = Executors.newFixedThreadPool(2);
 
         linkUpdateService = new LinkUpdateService(
-            linkRepository,
-            chatRepository,
-            List.of(githubHandler),
-            schedulerProperties,
-            linkUpdateExecutor,
-            messageSender,
-            scrapperMessages
-        );
+                linkRepository,
+                chatRepository,
+                List.of(githubHandler),
+                schedulerProperties,
+                linkUpdateExecutor,
+                messageSender,
+                scrapperMessages);
     }
 
     @AfterEach
@@ -91,10 +90,10 @@ class LinkUpdateServiceTest {
 
         LinkData githubLink = new LinkData(1L, githubUrl, OffsetDateTime.now().minusMinutes(15), List.of(), List.of());
         LinkData soLink =
-            new LinkData(2L, stackoverflowUrl, OffsetDateTime.now().minusMinutes(15), List.of(), List.of());
+                new LinkData(2L, stackoverflowUrl, OffsetDateTime.now().minusMinutes(15), List.of(), List.of());
 
         when(linkRepository.findLinksToUpdate(any(OffsetDateTime.class), anyInt()))
-            .thenReturn(List.of(githubLink, soLink));
+                .thenReturn(List.of(githubLink, soLink));
 
         when(githubHandler.supports("github.com")).thenReturn(true);
         when(githubHandler.supports("stackoverflow.com")).thenReturn(false);
@@ -104,12 +103,11 @@ class LinkUpdateServiceTest {
         linkUpdateService.updateLinks();
 
         verify(githubHandler, times(1))
-            .handle(
-                argThat(chatIds -> chatIds.size() == 2 && chatIds.containsAll(List.of(100L, 200L))),
-                eq(githubLink));
+                .handle(
+                        argThat(chatIds -> chatIds.size() == 2 && chatIds.containsAll(List.of(100L, 200L))),
+                        eq(githubLink));
 
         verify(githubHandler, never()).handle(argThat(ids -> ids.contains(300L)), any());
-
 
         verify(linkRepository, times(1)).updateLastUpdateTime(eq(1L), any());
         verify(linkRepository, times(1)).updateLastUpdateTime(eq(2L), any());
@@ -117,8 +115,18 @@ class LinkUpdateServiceTest {
 
     @Test
     void updateLinks_shouldIsolateErrorsAndNotifyUser() {
-        LinkData badLink = new LinkData(1L, URI.create("https://github.com/bad/repo"), OffsetDateTime.now().minusMinutes(15), List.of(), List.of());
-        LinkData goodLink = new LinkData(2L, URI.create("https://github.com/good/repo"), OffsetDateTime.now().minusMinutes(15), List.of(), List.of());
+        LinkData badLink = new LinkData(
+                1L,
+                URI.create("https://github.com/bad/repo"),
+                OffsetDateTime.now().minusMinutes(15),
+                List.of(),
+                List.of());
+        LinkData goodLink = new LinkData(
+                2L,
+                URI.create("https://github.com/good/repo"),
+                OffsetDateTime.now().minusMinutes(15),
+                List.of(),
+                List.of());
 
         when(schedulerProperties.getForceCheckDelay()).thenReturn(Duration.ofMinutes(10));
         when(schedulerProperties.getBatchSize()).thenReturn(50);
@@ -138,8 +146,8 @@ class LinkUpdateServiceTest {
 
         verify(linkRepository, times(2)).updateLastUpdateTime(anyLong(), any());
 
-        verify(messageSender).send(argThat(update ->
-            update.getId().equals(1L) && update.getDescription().equals("Error msg")
-        ));
+        verify(messageSender)
+                .send(argThat(update ->
+                        update.getId().equals(1L) && update.getDescription().equals("Error msg")));
     }
 }

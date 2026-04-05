@@ -42,77 +42,75 @@ public class StackOverflowLinkHandler implements LinkHandler {
         if (parts.length >= 3 && parts[1].equals("questions")) {
             try {
                 long questionId = Long.parseLong(parts[2]);
-                
-                String questionTitle = stackOverflowClient.fetchQuestion(questionId)
-                    .map(resp -> {
-                        if (resp.items() != null && !resp.items().isEmpty()) {
-                            return resp.items().getFirst().title();
-                        }
-                        return "Без заголовка";
-                    })
-                    .orElse("Без заголовка");
+
+                String questionTitle = stackOverflowClient
+                        .fetchQuestion(questionId)
+                        .map(resp -> {
+                            if (resp.items() != null && !resp.items().isEmpty()) {
+                                return resp.items().getFirst().title();
+                            }
+                            return "Без заголовка";
+                        })
+                        .orElse("Без заголовка");
 
                 OffsetDateTime maxUpdate = linkData.getLastUpdate();
 
                 maxUpdate = processUpdates(
-                    chatIds,
-                    linkData,
-                    maxUpdate,
-                    stackOverflowClient.fetchNewAnswers(questionId, linkData.getLastUpdate()),
-                    questionTitle
-                );
+                        chatIds,
+                        linkData,
+                        maxUpdate,
+                        stackOverflowClient.fetchNewAnswers(questionId, linkData.getLastUpdate()),
+                        questionTitle);
 
                 maxUpdate = processUpdates(
-                    chatIds,
-                    linkData,
-                    maxUpdate,
-                    stackOverflowClient.fetchNewComments(questionId, linkData.getLastUpdate()),
-                    questionTitle
-                );
+                        chatIds,
+                        linkData,
+                        maxUpdate,
+                        stackOverflowClient.fetchNewComments(questionId, linkData.getLastUpdate()),
+                        questionTitle);
 
                 linkData.setLastUpdate(maxUpdate);
 
             } catch (NumberFormatException e) {
                 log.atError()
-                    .addKeyValue("url", linkData.getUrl())
-                    .setCause(e)
-                    .log("Failed to parse StackOverflow question ID");
+                        .addKeyValue("url", linkData.getUrl())
+                        .setCause(e)
+                        .log("Failed to parse StackOverflow question ID");
             }
         }
     }
 
     private OffsetDateTime processUpdates(
-        List<Long> chatIds,
-        LinkData linkData,
-        OffsetDateTime currentMaxUpdate,
-        Optional<StackOverflowResponse> responseOpt,
-        String questionTitle
-    ) {
+            List<Long> chatIds,
+            LinkData linkData,
+            OffsetDateTime currentMaxUpdate,
+            Optional<StackOverflowResponse> responseOpt,
+            String questionTitle) {
         OffsetDateTime newMaxUpdate = currentMaxUpdate;
 
-        if (responseOpt.isPresent() && responseOpt.get().items() != null) {
-            for (StackOverflowResponse.Item item : responseOpt.get().items()) {
-                OffsetDateTime itemDate = OffsetDateTime.ofInstant(
-                    Instant.ofEpochSecond(item.creationDate()),
-                    ZoneOffset.UTC
-                );
+        List<StackOverflowResponse.Item> items =
+                responseOpt.map(StackOverflowResponse::items).orElse(null);
+
+        if (items != null) {
+            for (StackOverflowResponse.Item item : items) {
+                OffsetDateTime itemDate =
+                        OffsetDateTime.ofInstant(Instant.ofEpochSecond(item.creationDate()), ZoneOffset.UTC);
 
                 String author = item.owner() != null ? item.owner().displayName() : "Unknown";
                 String preview = truncateBody(item.body());
 
                 String description = String.format(
-                    scrapperMessages.getUpdates().getStackoverflowUpdate(),
-                    questionTitle,
-                    author,
-                    itemDate,
-                    preview
-                );
+                        scrapperMessages.getUpdates().getStackoverflowUpdate(),
+                        questionTitle,
+                        author,
+                        itemDate,
+                        preview);
 
                 messageSender.send(new LinkUpdate()
-                    .id(linkData.getId())
-                    .url(linkData.getUrl())
-                    .description(description)
-                    .tgChatIds(chatIds));
+                        .id(linkData.getId())
+                        .url(linkData.getUrl())
+                        .description(description)
+                        .tgChatIds(chatIds));
 
                 if (itemDate.isAfter(newMaxUpdate)) {
                     newMaxUpdate = itemDate;

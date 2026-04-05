@@ -7,14 +7,11 @@ import java.util.List;
 public record StackOverflowResponse(List<Item> items) {
 
     public record Item(
-        @JsonAlias({"answer_id", "comment_id"}) Long id,
-        @JsonProperty("creation_date") Long creationDate,
-        Owner owner,
-        String body,
-        String title
-    ) {}
+            @JsonAlias({"answer_id", "comment_id"}) Long id,
+            @JsonProperty("creation_date") Long creationDate,
+            Owner owner,
+            String body,
+            String title) {}
 
-    public record Owner(
-        @JsonProperty("display_name") String displayName
-    ) {}
+    public record Owner(@JsonProperty("display_name") String displayName) {}
 }
