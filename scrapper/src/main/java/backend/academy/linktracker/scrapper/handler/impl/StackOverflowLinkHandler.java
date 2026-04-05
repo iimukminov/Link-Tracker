@@ -1,12 +1,12 @@
 package backend.academy.linktracker.scrapper.handler.impl;
 
 import backend.academy.linktracker.bot.dto.LinkUpdate;
-import backend.academy.linktracker.scrapper.client.BotClient;
 import backend.academy.linktracker.scrapper.client.StackOverflowClient;
 import backend.academy.linktracker.scrapper.dto.StackOverflowResponse;
 import backend.academy.linktracker.scrapper.handler.LinkHandler;
 import backend.academy.linktracker.scrapper.model.LinkData;
 import java.util.List;
+import backend.academy.linktracker.scrapper.service.sender.MessageSender;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 public class StackOverflowLinkHandler implements LinkHandler {
 
     private final StackOverflowClient stackOverflowClient;
-    private final BotClient botClient;
+    private final MessageSender messageSender;
 
     @Override
     public boolean supports(String host) {
@@ -44,7 +44,7 @@ public class StackOverflowLinkHandler implements LinkHandler {
 
                             linkData.setLastUpdate(item.lastActivityDate());
 
-                            botClient.sendUpdate(new LinkUpdate()
+                            messageSender.send(new LinkUpdate()
                                     .id(linkData.getId())
                                     .url(linkData.getUrl())
                                     .description("Обновление в вопросе " + questionId)

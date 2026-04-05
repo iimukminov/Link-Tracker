@@ -1,11 +1,13 @@
 package backend.academy.linktracker.scrapper.handler.impl;
 
 import backend.academy.linktracker.bot.dto.LinkUpdate;
-import backend.academy.linktracker.scrapper.client.BotClient;
 import backend.academy.linktracker.scrapper.client.GitHubClient;
+import backend.academy.linktracker.scrapper.dto.GitHubIssueResponse;
 import backend.academy.linktracker.scrapper.handler.LinkHandler;
 import backend.academy.linktracker.scrapper.model.LinkData;
+import java.time.OffsetDateTime;
 import java.util.List;
+import backend.academy.linktracker.scrapper.service.sender.MessageSender;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -16,7 +18,7 @@ import org.springframework.stereotype.Component;
 public class GitHubLinkHandler implements LinkHandler {
 
     private final GitHubClient gitHubClient;
-    private final BotClient botClient;
+    private final MessageSender messageSender;
 
     @Override
     public boolean supports(String host) {
@@ -33,22 +35,46 @@ public class GitHubLinkHandler implements LinkHandler {
             String owner = parts[1];
             String repo = parts[2];
 
-            gitHubClient.fetchUpdate(owner, repo).ifPresent(response -> {
-                if (response.updatedAt().isAfter(linkData.getLastUpdate())) {
+            List<GitHubIssueResponse> newIssues = gitHubClient.fetchIssuesSince(owner, repo, linkData.getLastUpdate());
+
+            if (newIssues != null && !newIssues.isEmpty()) {
+                OffsetDateTime maxUpdate = linkData.getLastUpdate();
+
+                for (GitHubIssueResponse issue : newIssues) {
                     log.atInfo()
-                            .addKeyValue("repo", repo)
-                            .addKeyValue("chats_count", chatIds.size())
-                            .log("Update found in Github");
+                        .addKeyValue("repo", repo)
+                        .addKeyValue("issue_id", issue.id())
+                        .log("New Issue/PR found in Github");
 
-                    linkData.setLastUpdate(response.updatedAt());
+                    String preview = truncateBody(issue.body());
 
-                    botClient.sendUpdate(new LinkUpdate()
-                            .id(linkData.getId())
-                            .url(linkData.getUrl())
-                            .description("Обновление в репозитории " + repo)
-                            .tgChatIds(chatIds));
+                    String description = String.format(
+                        "Новый Issue/Pull Request: %s\nАвтор: %s\nСоздано: %s\n\n%s",
+                        issue.title(),
+                        issue.user() != null ? issue.user().login() : "Unknown",
+                        issue.createdAt(),
+                        preview
+                    );
+
+                    messageSender.send(new LinkUpdate()
+                        .id(linkData.getId())
+                        .url(linkData.getUrl())
+                        .description(description)
+                        .tgChatIds(chatIds));
+
+                    if (issue.createdAt() != null && issue.createdAt().isAfter(maxUpdate)) {
+                        maxUpdate = issue.createdAt();
+                    }
                 }
-            });
+
+                linkData.setLastUpdate(maxUpdate);
+            }
         }
+    }
+
+    private String truncateBody(String body) {
+        if (body == null || body.isBlank()) return "*Нет описания*";
+        if (body.length() <= 200) return body;
+        return body.substring(0, 197) + "...";
     }
 }

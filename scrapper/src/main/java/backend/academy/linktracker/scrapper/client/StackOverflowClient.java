@@ -1,6 +1,7 @@
 package backend.academy.linktracker.scrapper.client;
 
 import backend.academy.linktracker.scrapper.dto.StackOverflowResponse;
+import java.time.OffsetDateTime;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.RestClient;
@@ -13,19 +14,26 @@ public class StackOverflowClient {
         this.restClient = restClient;
     }
 
-    public Optional<StackOverflowResponse> fetchQuestion(long questionId) {
+    public Optional<StackOverflowResponse> fetchNewAnswers(long questionId, OffsetDateTime fromDate) {
+        long fromDateSeconds = fromDate.toEpochSecond();
+
         try {
             StackOverflowResponse response = restClient
-                    .get()
-                    .uri("/questions/{id}?site=stackoverflow", questionId)
-                    .retrieve()
-                    .body(StackOverflowResponse.class);
+                .get()
+                .uri(uriBuilder -> uriBuilder
+                    .path("/questions/{id}/answers")
+                    .queryParam("site", "stackoverflow")
+                    .queryParam("fromdate", fromDateSeconds)
+                    .queryParam("filter", "withbody")
+                    .build(questionId))
+                .retrieve()
+                .body(StackOverflowResponse.class);
             return Optional.ofNullable(response);
         } catch (Exception e) {
             log.atError()
-                    .addKeyValue("questionId", questionId)
-                    .setCause(e)
-                    .log("Error fetching StackOverflow question");
+                .addKeyValue("questionId", questionId)
+                .setCause(e)
+                .log("Error fetching StackOverflow answers");
             return Optional.empty();
         }
     }
