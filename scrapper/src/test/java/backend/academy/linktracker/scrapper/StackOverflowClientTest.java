@@ -61,24 +61,24 @@ public class StackOverflowClientTest {
             """;
 
         stubFor(get(urlPathEqualTo("/questions/" + questionId + "/answers"))
-                .withQueryParam("site", equalTo("stackoverflow"))
-                .withQueryParam("fromdate", equalTo(String.valueOf(fromDateSeconds)))
-                .withQueryParam("filter", equalTo("withbody"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(responseBody)));
+            .withQueryParam("site", equalTo("stackoverflow"))
+            .withQueryParam("fromdate", equalTo(String.valueOf(fromDateSeconds)))
+            .withQueryParam("filter", equalTo("withbody"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(responseBody)));
 
         Optional<StackOverflowResponse> responseOpt = stackOverflowClient.fetchNewAnswers(questionId, fromDate);
 
         assertThat(responseOpt).isPresent();
         assertThat(responseOpt.get().items()).hasSize(1);
 
-        StackOverflowResponse.Answer answer = responseOpt.get().items().getFirst();
-        assertThat(answer.answerId()).isEqualTo(987654L);
-        assertThat(answer.creationDate()).isEqualTo(1704100000L);
-        assertThat(answer.owner().displayName()).isEqualTo("Jon Skeet");
-        assertThat(answer.body()).isEqualTo("Используйте CompletableFuture.");
+        StackOverflowResponse.Item item = responseOpt.get().items().getFirst();
+        assertThat(item.id()).isEqualTo(987654L);
+        assertThat(item.creationDate()).isEqualTo(1704100000L);
+        assertThat(item.owner().displayName()).isEqualTo("Jon Skeet");
+        assertThat(item.body()).isEqualTo("Используйте CompletableFuture.");
     }
 
     @Test
@@ -88,10 +88,73 @@ public class StackOverflowClientTest {
         OffsetDateTime fromDate = OffsetDateTime.now();
 
         stubFor(get(urlPathEqualTo("/questions/" + questionId + "/answers"))
-                .willReturn(aResponse().withStatus(500)));
+            .willReturn(aResponse().withStatus(500)));
 
         Optional<StackOverflowResponse> responseOpt = stackOverflowClient.fetchNewAnswers(questionId, fromDate);
 
         assertThat(responseOpt).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Должен возвращать комментарии при успешном запросе")
+    void fetchNewComments_ShouldReturnComments_WhenSuccessful() {
+        long questionId = 123456L;
+        OffsetDateTime fromDate = OffsetDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+
+        String responseBody = """
+            {
+              "items": [
+                {
+                  "comment_id": 111222,
+                  "creation_date": 1704100500,
+                  "owner": {
+                    "display_name": "Alice"
+                  },
+                  "body": "Согласна с предыдущим оратором"
+                }
+              ]
+            }
+            """;
+
+        stubFor(get(urlPathEqualTo("/questions/" + questionId + "/comments"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(responseBody)));
+
+        Optional<StackOverflowResponse> responseOpt = stackOverflowClient.fetchNewComments(questionId, fromDate);
+
+        assertThat(responseOpt).isPresent();
+        StackOverflowResponse.Item item = responseOpt.get().items().getFirst();
+        assertThat(item.id()).isEqualTo(111222L); // JsonAlias должен подхватить comment_id
+        assertThat(item.owner().displayName()).isEqualTo("Alice");
+    }
+
+    @Test
+    @DisplayName("Должен возвращать заголовок вопроса")
+    void fetchQuestion_ShouldReturnTitle_WhenSuccessful() {
+        long questionId = 123456L;
+
+        String responseBody = """
+            {
+              "items": [
+                {
+                  "question_id": 123456,
+                  "title": "Как работает Spring Boot?"
+                }
+              ]
+            }
+            """;
+
+        stubFor(get(urlPathEqualTo("/questions/" + questionId))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(responseBody)));
+
+        Optional<StackOverflowResponse> responseOpt = stackOverflowClient.fetchQuestion(questionId);
+
+        assertThat(responseOpt).isPresent();
+        assertThat(responseOpt.get().items().getFirst().title()).isEqualTo("Как работает Spring Boot?");
     }
 }

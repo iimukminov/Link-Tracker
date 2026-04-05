@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -41,41 +42,36 @@ public class StackOverflowLinkHandler implements LinkHandler {
         if (parts.length >= 3 && parts[1].equals("questions")) {
             try {
                 long questionId = Long.parseLong(parts[2]);
-
-                stackOverflowClient.fetchNewAnswers(questionId, linkData.getLastUpdate()).ifPresent(response -> {
-                    if (response.items() != null && !response.items().isEmpty()) {
-                        OffsetDateTime maxUpdate = linkData.getLastUpdate();
-
-                        for (StackOverflowResponse.Answer answer : response.items()) {
-                            OffsetDateTime answerDate = OffsetDateTime.ofInstant(
-                                Instant.ofEpochSecond(answer.creationDate()),
-                                ZoneOffset.UTC
-                            );
-
-                            String author = answer.owner() != null ? answer.owner().displayName() : "Unknown";
-                            String preview = truncateBody(answer.body());
-
-                            String description = String.format(
-                                scrapperMessages.getUpdates().getStackoverflowUpdate(),
-                                author,
-                                answerDate,
-                                preview
-                            );
-
-                            messageSender.send(new LinkUpdate()
-                                .id(linkData.getId())
-                                .url(linkData.getUrl())
-                                .description(description)
-                                .tgChatIds(chatIds));
-
-                            if (answerDate.isAfter(maxUpdate)) {
-                                maxUpdate = answerDate;
-                            }
+                
+                String questionTitle = stackOverflowClient.fetchQuestion(questionId)
+                    .map(resp -> {
+                        if (resp.items() != null && !resp.items().isEmpty()) {
+                            return resp.items().getFirst().title();
                         }
+                        return "Без заголовка";
+                    })
+                    .orElse("Без заголовка");
 
-                        linkData.setLastUpdate(maxUpdate);
-                    }
-                });
+                OffsetDateTime maxUpdate = linkData.getLastUpdate();
+
+                maxUpdate = processUpdates(
+                    chatIds,
+                    linkData,
+                    maxUpdate,
+                    stackOverflowClient.fetchNewAnswers(questionId, linkData.getLastUpdate()),
+                    questionTitle
+                );
+
+                maxUpdate = processUpdates(
+                    chatIds,
+                    linkData,
+                    maxUpdate,
+                    stackOverflowClient.fetchNewComments(questionId, linkData.getLastUpdate()),
+                    questionTitle
+                );
+
+                linkData.setLastUpdate(maxUpdate);
+
             } catch (NumberFormatException e) {
                 log.atError()
                     .addKeyValue("url", linkData.getUrl())
@@ -83,6 +79,47 @@ public class StackOverflowLinkHandler implements LinkHandler {
                     .log("Failed to parse StackOverflow question ID");
             }
         }
+    }
+
+    private OffsetDateTime processUpdates(
+        List<Long> chatIds,
+        LinkData linkData,
+        OffsetDateTime currentMaxUpdate,
+        Optional<StackOverflowResponse> responseOpt,
+        String questionTitle
+    ) {
+        OffsetDateTime newMaxUpdate = currentMaxUpdate;
+
+        if (responseOpt.isPresent() && responseOpt.get().items() != null) {
+            for (StackOverflowResponse.Item item : responseOpt.get().items()) {
+                OffsetDateTime itemDate = OffsetDateTime.ofInstant(
+                    Instant.ofEpochSecond(item.creationDate()),
+                    ZoneOffset.UTC
+                );
+
+                String author = item.owner() != null ? item.owner().displayName() : "Unknown";
+                String preview = truncateBody(item.body());
+
+                String description = String.format(
+                    scrapperMessages.getUpdates().getStackoverflowUpdate(),
+                    questionTitle,
+                    author,
+                    itemDate,
+                    preview
+                );
+
+                messageSender.send(new LinkUpdate()
+                    .id(linkData.getId())
+                    .url(linkData.getUrl())
+                    .description(description)
+                    .tgChatIds(chatIds));
+
+                if (itemDate.isAfter(newMaxUpdate)) {
+                    newMaxUpdate = itemDate;
+                }
+            }
+        }
+        return newMaxUpdate;
     }
 
     private String truncateBody(String body) {

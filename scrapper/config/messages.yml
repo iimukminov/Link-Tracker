@@ -11,5 +11,5 @@ scrapper:
     updates:
       githubUpdate: "Новый Issue/Pull Request: %s\nАвтор: %s\nСоздано: %s\n\n%s"
       githubNoDescription: "*Нет описания*"
-      stackoverflowUpdate: "Новый ответ на StackOverflow!\nАвтор: %s\nСоздано: %s\n\n%s"
+      stackoverflowUpdate: "Обновление в вопросе: %s\nАвтор: %s\nСоздано: %s\n\n%s"
       stackoverflowNoDescription: "*Нет текста*"

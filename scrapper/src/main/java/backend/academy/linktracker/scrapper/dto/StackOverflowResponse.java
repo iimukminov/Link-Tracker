@@ -1,15 +1,17 @@
 package backend.academy.linktracker.scrapper.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
-public record StackOverflowResponse(List<Answer> items) {
+public record StackOverflowResponse(List<Item> items) {
 
-    public record Answer(
-        @JsonProperty("answer_id") Long answerId,
-        @JsonProperty("creation_date") Long creationDate, // здесь не OffsetDateTime, т.к. там Unix (считает секунды с 1970 года)
+    public record Item(
+        @JsonAlias({"answer_id", "comment_id"}) Long id,
+        @JsonProperty("creation_date") Long creationDate,
         Owner owner,
-        String body
+        String body,
+        String title
     ) {}
 
     public record Owner(

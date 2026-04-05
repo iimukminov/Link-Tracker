@@ -2,8 +2,12 @@ package backend.academy.linktracker.scrapper;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -109,5 +113,33 @@ class LinkUpdateServiceTest {
 
         verify(linkRepository, times(1)).updateLastUpdateTime(eq(1L), any());
         verify(linkRepository, times(1)).updateLastUpdateTime(eq(2L), any());
+    }
+
+    @Test
+    void updateLinks_shouldIsolateErrorsAndNotifyUser() {
+        LinkData badLink = new LinkData(1L, URI.create("https://github.com/bad/repo"), OffsetDateTime.now().minusMinutes(15), List.of(), List.of());
+        LinkData goodLink = new LinkData(2L, URI.create("https://github.com/good/repo"), OffsetDateTime.now().minusMinutes(15), List.of(), List.of());
+
+        when(schedulerProperties.getForceCheckDelay()).thenReturn(Duration.ofMinutes(10));
+        when(schedulerProperties.getBatchSize()).thenReturn(50);
+        when(linkRepository.findLinksToUpdate(any(), anyInt())).thenReturn(List.of(badLink, goodLink));
+
+        when(githubHandler.supports(anyString())).thenReturn(true);
+        when(chatRepository.findAllByLinkId(anyLong())).thenReturn(List.of(100L));
+
+        when(scrapperMessages.getErrors()).thenReturn(new ScrapperMessages.Errors());
+        scrapperMessages.getErrors().setProcessingError("Error msg");
+
+        doThrow(new RuntimeException("API DOWN")).when(githubHandler).handle(anyList(), eq(badLink));
+
+        linkUpdateService.updateLinks();
+
+        verify(githubHandler).handle(anyList(), eq(goodLink));
+
+        verify(linkRepository, times(2)).updateLastUpdateTime(anyLong(), any());
+
+        verify(messageSender).send(argThat(update ->
+            update.getId().equals(1L) && update.getDescription().equals("Error msg")
+        ));
     }
 }
