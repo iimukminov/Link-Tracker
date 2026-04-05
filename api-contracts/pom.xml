@@ -57,9 +57,6 @@
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
                 <version>7.4.0</version>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
                 <executions>
                     <execution>
                         <id>generate-bot-api</id>
