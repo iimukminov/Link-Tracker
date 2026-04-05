@@ -26,4 +26,7 @@ public class SchedulerProperties {
 
     @Positive
     private int batchSize;
+
+    @Positive
+    private int threadsCount;
 }

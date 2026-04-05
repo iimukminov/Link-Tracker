@@ -5,8 +5,12 @@ import backend.academy.linktracker.scrapper.client.StackOverflowClient;
 import backend.academy.linktracker.scrapper.dto.StackOverflowResponse;
 import backend.academy.linktracker.scrapper.handler.LinkHandler;
 import backend.academy.linktracker.scrapper.model.LinkData;
-import java.util.List;
+import backend.academy.linktracker.scrapper.properties.ScrapperMessages;
 import backend.academy.linktracker.scrapper.service.sender.MessageSender;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,6 +22,7 @@ public class StackOverflowLinkHandler implements LinkHandler {
 
     private final StackOverflowClient stackOverflowClient;
     private final MessageSender messageSender;
+    private final ScrapperMessages scrapperMessages;
 
     @Override
     public boolean supports(String host) {
@@ -27,34 +32,66 @@ public class StackOverflowLinkHandler implements LinkHandler {
     @Override
     public void handle(List<Long> chatIds, LinkData linkData) {
         String path = linkData.getUrl().getPath();
-        if (path == null) return;
+        if (path == null) {
+            return;
+        }
+
         String[] parts = path.split("/");
 
         if (parts.length >= 3 && parts[1].equals("questions")) {
             try {
-                Long questionId = Long.parseLong(parts[2]);
-                stackOverflowClient.fetchQuestion(questionId).ifPresent(response -> {
-                    if (response.items() != null && !response.items().isEmpty()) {
-                        StackOverflowResponse.Item item = response.items().get(0);
-                        if (item.lastActivityDate().isAfter(linkData.getLastUpdate())) {
-                            log.atInfo()
-                                    .addKeyValue("question_id", questionId)
-                                    .addKeyValue("chats_count", chatIds.size())
-                                    .log("Update found in StackOverflow");
+                long questionId = Long.parseLong(parts[2]);
 
-                            linkData.setLastUpdate(item.lastActivityDate());
+                stackOverflowClient.fetchNewAnswers(questionId, linkData.getLastUpdate()).ifPresent(response -> {
+                    if (response.items() != null && !response.items().isEmpty()) {
+                        OffsetDateTime maxUpdate = linkData.getLastUpdate();
+
+                        for (StackOverflowResponse.Answer answer : response.items()) {
+                            OffsetDateTime answerDate = OffsetDateTime.ofInstant(
+                                Instant.ofEpochSecond(answer.creationDate()),
+                                ZoneOffset.UTC
+                            );
+
+                            String author = answer.owner() != null ? answer.owner().displayName() : "Unknown";
+                            String preview = truncateBody(answer.body());
+
+                            String description = String.format(
+                                scrapperMessages.getUpdates().getStackoverflowUpdate(),
+                                author,
+                                answerDate,
+                                preview
+                            );
 
                             messageSender.send(new LinkUpdate()
-                                    .id(linkData.getId())
-                                    .url(linkData.getUrl())
-                                    .description("Обновление в вопросе " + questionId)
-                                    .tgChatIds(chatIds));
+                                .id(linkData.getId())
+                                .url(linkData.getUrl())
+                                .description(description)
+                                .tgChatIds(chatIds));
+
+                            if (answerDate.isAfter(maxUpdate)) {
+                                maxUpdate = answerDate;
+                            }
                         }
+
+                        linkData.setLastUpdate(maxUpdate);
                     }
                 });
             } catch (NumberFormatException e) {
-                log.atError().addKeyValue("url", linkData.getUrl()).log("Failed to parse StackOverflow ID");
+                log.atError()
+                    .addKeyValue("url", linkData.getUrl())
+                    .setCause(e)
+                    .log("Failed to parse StackOverflow question ID");
             }
         }
+    }
+
+    private String truncateBody(String body) {
+        if (body == null || body.isBlank()) {
+            return scrapperMessages.getUpdates().getStackoverflowNoDescription();
+        }
+        if (body.length() <= 200) {
+            return body;
+        }
+        return body.substring(0, 197) + "...";
     }
 }

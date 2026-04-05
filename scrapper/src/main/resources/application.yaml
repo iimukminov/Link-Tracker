@@ -34,7 +34,8 @@ app:
     enable: true
     interval: 10s
     force-check-delay: 10m
-    batch-size: 50
+    batch-size: 200
+    threads-count: 4
 
   links:
     limit: 100

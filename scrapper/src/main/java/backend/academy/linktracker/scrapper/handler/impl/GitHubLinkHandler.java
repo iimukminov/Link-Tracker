@@ -7,6 +7,7 @@ import backend.academy.linktracker.scrapper.handler.LinkHandler;
 import backend.academy.linktracker.scrapper.model.LinkData;
 import java.time.OffsetDateTime;
 import java.util.List;
+import backend.academy.linktracker.scrapper.properties.ScrapperMessages;
 import backend.academy.linktracker.scrapper.service.sender.MessageSender;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,7 @@ public class GitHubLinkHandler implements LinkHandler {
 
     private final GitHubClient gitHubClient;
     private final MessageSender messageSender;
+    private final ScrapperMessages scrapperMessages;
 
     @Override
     public boolean supports(String host) {
@@ -49,7 +51,7 @@ public class GitHubLinkHandler implements LinkHandler {
                     String preview = truncateBody(issue.body());
 
                     String description = String.format(
-                        "Новый Issue/Pull Request: %s\nАвтор: %s\nСоздано: %s\n\n%s",
+                        scrapperMessages.getUpdates().getGithubUpdate(),
                         issue.title(),
                         issue.user() != null ? issue.user().login() : "Unknown",
                         issue.createdAt(),
@@ -73,7 +75,7 @@ public class GitHubLinkHandler implements LinkHandler {
     }
 
     private String truncateBody(String body) {
-        if (body == null || body.isBlank()) return "*Нет описания*";
+        if (body == null || body.isBlank()) return scrapperMessages.getUpdates().getGithubNoDescription();
         if (body.length() <= 200) return body;
         return body.substring(0, 197) + "...";
     }

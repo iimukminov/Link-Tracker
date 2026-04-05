@@ -6,3 +6,10 @@ scrapper:
       linkNotFound: "Ссылка не найдена в списке отслеживания"
       linkAlreadyTracked: "Ссылка уже отслеживается"
       chatAlreadyRegistered: "Чат уже существует"
+      processingError: "Ошибка: не удалось обработать эту ссылку. Возможно, ресурс недоступен."
+
+    updates:
+      githubUpdate: "Новый Issue/Pull Request: %s\nАвтор: %s\nСоздано: %s\n\n%s"
+      githubNoDescription: "*Нет описания*"
+      stackoverflowUpdate: "Новый ответ на StackOverflow!\nАвтор: %s\nСоздано: %s\n\n%s"
+      stackoverflowNoDescription: "*Нет текста*"
