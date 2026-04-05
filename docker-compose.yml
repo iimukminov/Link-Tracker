@@ -1,0 +1,73 @@
+services:
+  postgresql:
+    image: postgres:16-alpine
+    container_name: link_tracker_db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "54321:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+
+  liquibase-migrations:
+    container_name: migrations
+    image: liquibase/liquibase:4.29
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    command:
+      - --searchPath=/changesets
+      - --changelog-file=master.xml
+      - --driver=org.postgresql.Driver
+      - --url=${SPRING_DATASOURCE_URL}
+      - --username=${SPRING_DATASOURCE_USERNAME}
+      - --password=${SPRING_DATASOURCE_PASSWORD}
+      - update
+    volumes:
+      - ./migrations:/changesets
+    networks:
+      - backend
+
+  bot:
+    build:
+      dockerfile: bot/Dockerfile
+    container_name: link_tracker_bot
+    volumes:
+      - ./bot/config/messages.yml:/app/config/messages.yml
+    env_file:
+      - .env
+    networks:
+      - backend
+    depends_on:
+      - scrapper
+
+  scrapper:
+    build:
+      dockerfile: scrapper/Dockerfile
+    container_name: link_tracker_scrapper
+    volumes:
+      - ./scrapper/config/messages.yml:/app/config/messages.yml
+    env_file:
+      - .env
+    networks:
+      - backend
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      liquibase-migrations:
+        condition: service_completed_successfully
+
+volumes:
+  pg_data:
+
+networks:
+  backend:

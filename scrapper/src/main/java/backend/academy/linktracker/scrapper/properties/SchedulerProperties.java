@@ -1,6 +1,7 @@
 package backend.academy.linktracker.scrapper.properties;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import java.time.Duration;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,4 +20,10 @@ public class SchedulerProperties {
 
     @NotNull
     private Duration interval;
+
+    @NotNull
+    private Duration forceCheckDelay;
+
+    @Positive
+    private int batchSize;
 }
