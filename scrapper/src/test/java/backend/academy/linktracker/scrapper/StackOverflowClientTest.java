@@ -73,9 +73,9 @@ public class StackOverflowClientTest {
         Optional<StackOverflowResponse> responseOpt = stackOverflowClient.fetchNewAnswers(questionId, fromDate);
 
         assertThat(responseOpt).isPresent();
-        assertThat(responseOpt.get().items()).hasSize(1);
+        assertThat(responseOpt.orElseThrow().items()).hasSize(1);
 
-        StackOverflowResponse.Item item = responseOpt.get().items().getFirst();
+        StackOverflowResponse.Item item = responseOpt.orElseThrow().items().getFirst();
         assertThat(item.id()).isEqualTo(987654L);
         assertThat(item.creationDate()).isEqualTo(1704100000L);
         assertThat(item.owner().displayName()).isEqualTo("Jon Skeet");
@@ -126,8 +126,8 @@ public class StackOverflowClientTest {
         Optional<StackOverflowResponse> responseOpt = stackOverflowClient.fetchNewComments(questionId, fromDate);
 
         assertThat(responseOpt).isPresent();
-        StackOverflowResponse.Item item = responseOpt.get().items().getFirst();
-        assertThat(item.id()).isEqualTo(111222L); // JsonAlias должен подхватить comment_id
+        StackOverflowResponse.Item item = responseOpt.orElseThrow().items().getFirst();
+        assertThat(item.id()).isEqualTo(111222L);
         assertThat(item.owner().displayName()).isEqualTo("Alice");
     }
 
@@ -156,6 +156,6 @@ public class StackOverflowClientTest {
         Optional<StackOverflowResponse> responseOpt = stackOverflowClient.fetchQuestion(questionId);
 
         assertThat(responseOpt).isPresent();
-        assertThat(responseOpt.get().items().getFirst().title()).isEqualTo("Как работает Spring Boot?");
+        assertThat(responseOpt.orElseThrow().items().getFirst().title()).isEqualTo("Как работает Spring Boot?");
     }
 }
