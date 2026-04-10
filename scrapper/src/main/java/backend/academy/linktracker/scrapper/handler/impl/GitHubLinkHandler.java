@@ -6,6 +6,7 @@ import backend.academy.linktracker.scrapper.dto.GitHubIssueResponse;
 import backend.academy.linktracker.scrapper.handler.LinkHandler;
 import backend.academy.linktracker.scrapper.model.LinkData;
 import backend.academy.linktracker.scrapper.properties.ScrapperMessages;
+import backend.academy.linktracker.scrapper.service.UpdateMessageFormatter;
 import backend.academy.linktracker.scrapper.service.sender.MessageSender;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -20,7 +21,7 @@ public class GitHubLinkHandler implements LinkHandler {
 
     private final GitHubClient gitHubClient;
     private final MessageSender messageSender;
-    private final ScrapperMessages scrapperMessages;
+    private final UpdateMessageFormatter messageFormatter;
 
     @Override
     public boolean supports(String host) {
@@ -29,53 +30,43 @@ public class GitHubLinkHandler implements LinkHandler {
 
     @Override
     public void handle(List<Long> chatIds, LinkData linkData) {
-        String path = linkData.getUrl().getPath();
-        if (path == null) return;
-        String[] parts = path.split("/");
+        String[] pathParts = parsePath(linkData.getUrl().getPath());
+        if (pathParts == null) return;
 
-        if (parts.length >= 3) {
-            String owner = parts[1];
-            String repo = parts[2];
+        String owner = pathParts[0];
+        String repo = pathParts[1];
 
-            List<GitHubIssueResponse> newIssues = gitHubClient.fetchIssuesSince(owner, repo, linkData.getLastUpdate());
+        List<GitHubIssueResponse> newIssues = gitHubClient.fetchIssuesSince(owner, repo, linkData.getLastUpdate());
+        if (newIssues.isEmpty()) return;
 
-            if (newIssues != null && !newIssues.isEmpty()) {
-                OffsetDateTime maxUpdate = linkData.getLastUpdate();
+        OffsetDateTime maxUpdate = linkData.getLastUpdate();
+        for (GitHubIssueResponse issue : newIssues) {
+            String type = (issue.htmlUrl() != null && issue.htmlUrl().contains("/pull/"))
+                ? "Pull Request" : "Issue";
 
-                for (GitHubIssueResponse issue : newIssues) {
-                    log.atInfo()
-                            .addKeyValue("repo", repo)
-                            .addKeyValue("issue_id", issue.id())
-                            .log("New Issue/PR found in Github");
+            String description = messageFormatter.formatGitHubUpdate(issue, type);
 
-                    String preview = truncateBody(issue.body());
+            sendUpdate(chatIds, linkData, description);
 
-                    String description = String.format(
-                            scrapperMessages.getUpdates().getGithubUpdate(),
-                            issue.title(),
-                            issue.user() != null ? issue.user().login() : "Unknown",
-                            issue.createdAt(),
-                            preview);
-
-                    messageSender.send(new LinkUpdate()
-                            .id(linkData.getId())
-                            .url(linkData.getUrl())
-                            .description(description)
-                            .tgChatIds(chatIds));
-
-                    if (issue.createdAt() != null && issue.createdAt().isAfter(maxUpdate)) {
-                        maxUpdate = issue.createdAt();
-                    }
-                }
-
-                linkData.setLastUpdate(maxUpdate);
+            if (issue.createdAt() != null && issue.createdAt().isAfter(maxUpdate)) {
+                maxUpdate = issue.createdAt();
             }
         }
+        linkData.setLastUpdate(maxUpdate);
     }
 
-    private String truncateBody(String body) {
-        if (body == null || body.isBlank()) return scrapperMessages.getUpdates().getGithubNoDescription();
-        if (body.length() <= 200) return body;
-        return body.substring(0, 197) + "...";
+    private void sendUpdate(List<Long> chatIds, LinkData linkData, String description) {
+        messageSender.send(new LinkUpdate()
+            .id(linkData.getId())
+            .url(linkData.getUrl())
+            .description(description)
+            .tgChatIds(chatIds));
+    }
+
+    private String[] parsePath(String path) {
+        if (path == null) return null;
+        String[] parts = path.split("/");
+        if (parts.length < 3) return null;
+        return new String[]{parts[1], parts[2]};
     }
 }
