@@ -20,7 +20,7 @@ public class UpdateMessageFormatter {
                 type,
                 issue.title(),
                 issue.user() != null ? issue.user().login() : "Unknown",
-                issue.createdAt(),
+                issue.updatedAt(),
                 LinkUtils.truncateBody(
                         issue.body(), scrapperMessages.getUpdates().getGithubNoDescription()));
     }

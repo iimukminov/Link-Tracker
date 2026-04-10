@@ -37,9 +37,7 @@ public class StackOverflowLinkHandler implements LinkHandler {
 
         String title = stackOverflowClient
                 .fetchQuestion(questionId)
-                .map(resp -> (resp.items() != null && !resp.items().isEmpty())
-                        ? resp.items().getFirst().title()
-                        : "Без заголовка")
+                .map(resp -> resp.items().getFirst().title())
                 .orElse("Без заголовка");
 
         OffsetDateTime maxUpdate = linkData.getLastUpdate();
@@ -70,27 +68,31 @@ public class StackOverflowLinkHandler implements LinkHandler {
             String title,
             String type,
             Optional<StackOverflowResponse> responseOpt) {
+
+        OffsetDateTime lastUpdate = linkData.getLastUpdate();
         OffsetDateTime newMax = currentMax;
 
         List<StackOverflowResponse.Item> items =
                 responseOpt.map(StackOverflowResponse::items).orElse(List.of());
 
         for (StackOverflowResponse.Item item : items) {
-            if (item.creationDate() == null) continue;
+            Long seconds = item.lastActivityDate() != null ? item.lastActivityDate() : item.creationDate();
+            if (seconds == null) continue;
 
-            OffsetDateTime itemDate =
-                    OffsetDateTime.ofInstant(Instant.ofEpochSecond(item.creationDate()), ZoneOffset.UTC);
+            OffsetDateTime itemDate = OffsetDateTime.ofInstant(Instant.ofEpochSecond(seconds), ZoneOffset.UTC);
 
-            String description = messageFormatter.formatStackOverflowUpdate(item, title, type, itemDate);
+            if (itemDate.isAfter(lastUpdate)) {
+                String description = messageFormatter.formatStackOverflowUpdate(item, title, type, itemDate);
 
-            messageSender.send(new LinkUpdate()
-                    .id(linkData.getId())
-                    .url(linkData.getUrl())
-                    .description(description)
-                    .tgChatIds(chatIds));
+                messageSender.send(new LinkUpdate()
+                        .id(linkData.getId())
+                        .url(linkData.getUrl())
+                        .description(description)
+                        .tgChatIds(chatIds));
 
-            if (itemDate.isAfter(newMax)) {
-                newMax = itemDate;
+                if (itemDate.isAfter(newMax)) {
+                    newMax = itemDate;
+                }
             }
         }
         return newMax;

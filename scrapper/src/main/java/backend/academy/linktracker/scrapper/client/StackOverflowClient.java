@@ -36,7 +36,7 @@ public class StackOverflowClient {
         StackOverflowResponse response = restClient
                 .get()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/questions/{id}/comments") // другой эндпоинт
+                        .path("/questions/{id}/comments")
                         .queryParam("site", "stackoverflow")
                         .queryParam("fromdate", fromDateSeconds)
                         .queryParam("filter", "withbody")

@@ -38,16 +38,21 @@ public class GitHubLinkHandler implements LinkHandler {
         List<GitHubIssueResponse> newIssues = gitHubClient.fetchIssuesSince(owner, repo, linkData.getLastUpdate());
         if (newIssues.isEmpty()) return;
 
-        OffsetDateTime maxUpdate = linkData.getLastUpdate();
+        OffsetDateTime lastUpdate = linkData.getLastUpdate();
+        OffsetDateTime maxUpdate = lastUpdate;
+
         for (GitHubIssueResponse issue : newIssues) {
-            String type = (issue.htmlUrl() != null && issue.htmlUrl().contains("/pull/")) ? "Pull Request" : "Issue";
+            if (issue.updatedAt() != null && issue.updatedAt().isAfter(lastUpdate)) {
+                String type =
+                        (issue.htmlUrl() != null && issue.htmlUrl().contains("/pull/")) ? "Pull Request" : "Issue";
 
-            String description = messageFormatter.formatGitHubUpdate(issue, type);
+                String description = messageFormatter.formatGitHubUpdate(issue, type);
 
-            sendUpdate(chatIds, linkData, description);
+                sendUpdate(chatIds, linkData, description);
 
-            if (issue.createdAt() != null && issue.createdAt().isAfter(maxUpdate)) {
-                maxUpdate = issue.createdAt();
+                if (issue.updatedAt().isAfter(maxUpdate)) {
+                    maxUpdate = issue.updatedAt();
+                }
             }
         }
         linkData.setLastUpdate(maxUpdate);
