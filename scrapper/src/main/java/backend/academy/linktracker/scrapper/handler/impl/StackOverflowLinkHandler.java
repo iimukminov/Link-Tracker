@@ -5,7 +5,6 @@ import backend.academy.linktracker.scrapper.client.StackOverflowClient;
 import backend.academy.linktracker.scrapper.dto.StackOverflowResponse;
 import backend.academy.linktracker.scrapper.handler.LinkHandler;
 import backend.academy.linktracker.scrapper.model.LinkData;
-import backend.academy.linktracker.scrapper.properties.ScrapperMessages;
 import backend.academy.linktracker.scrapper.service.UpdateMessageFormatter;
 import backend.academy.linktracker.scrapper.service.sender.MessageSender;
 import java.time.Instant;
@@ -36,20 +35,65 @@ public class StackOverflowLinkHandler implements LinkHandler {
         Long questionId = extractQuestionId(linkData.getUrl().getPath());
         if (questionId == null) return;
 
-        String title = stackOverflowClient.fetchQuestion(questionId)
-            .map(resp -> (resp.items() != null && !resp.items().isEmpty())
-                ? resp.items().getFirst().title() : "Без заголовка")
-            .orElse("Без заголовка");
+        String title = stackOverflowClient
+                .fetchQuestion(questionId)
+                .map(resp -> (resp.items() != null && !resp.items().isEmpty())
+                        ? resp.items().getFirst().title()
+                        : "Без заголовка")
+                .orElse("Без заголовка");
 
         OffsetDateTime maxUpdate = linkData.getLastUpdate();
 
-        maxUpdate = processItems(chatIds, linkData, maxUpdate, title, "Ответ",
-            stackOverflowClient.fetchNewAnswers(questionId, linkData.getLastUpdate()));
+        maxUpdate = processItems(
+                chatIds,
+                linkData,
+                maxUpdate,
+                title,
+                "Ответ",
+                stackOverflowClient.fetchNewAnswers(questionId, linkData.getLastUpdate()));
 
-        maxUpdate = processItems(chatIds, linkData, maxUpdate, title, "Комментарий",
-            stackOverflowClient.fetchNewComments(questionId, linkData.getLastUpdate()));
+        maxUpdate = processItems(
+                chatIds,
+                linkData,
+                maxUpdate,
+                title,
+                "Комментарий",
+                stackOverflowClient.fetchNewComments(questionId, linkData.getLastUpdate()));
 
         linkData.setLastUpdate(maxUpdate);
+    }
+
+    private OffsetDateTime processItems(
+            List<Long> chatIds,
+            LinkData linkData,
+            OffsetDateTime currentMax,
+            String title,
+            String type,
+            Optional<StackOverflowResponse> responseOpt) {
+        OffsetDateTime newMax = currentMax;
+
+        List<StackOverflowResponse.Item> items =
+                responseOpt.map(StackOverflowResponse::items).orElse(List.of());
+
+        for (StackOverflowResponse.Item item : items) {
+            if (item.creationDate() == null) continue;
+
+            OffsetDateTime itemDate =
+                    OffsetDateTime.ofInstant(Instant.ofEpochSecond(item.creationDate()), ZoneOffset.UTC);
+
+            String description = messageFormatter.formatStackOverflowUpdate(item, title, type, itemDate);
+
+            messageSender.send(new LinkUpdate()
+                    .id(linkData.getId())
+                    .url(linkData.getUrl())
+                    .description(description)
+                    .tgChatIds(chatIds));
+
+            if (itemDate.isAfter(newMax)) {
+                newMax = itemDate;
+            }
+        }
+        return newMax;
     }
 
     private Long extractQuestionId(String path) {
@@ -59,38 +103,9 @@ public class StackOverflowLinkHandler implements LinkHandler {
             try {
                 return Long.parseLong(parts[2]);
             } catch (NumberFormatException e) {
-                log.warn("Failed to parse StackOverflow ID: {}", parts[2]);
+                log.atWarn().addKeyValue("id", parts[2]).log("Failed to parse StackOverflow ID");
             }
         }
         return null;
-    }
-
-    private OffsetDateTime processItems(List<Long> chatIds, LinkData linkData, OffsetDateTime currentMax,
-                                        String title, String type, Optional<StackOverflowResponse> responseOpt) {
-        OffsetDateTime newMax = currentMax;
-
-        List<StackOverflowResponse.Item> items = responseOpt
-            .map(StackOverflowResponse::items)
-            .orElse(List.of());
-
-        for (StackOverflowResponse.Item item : items) {
-            if (item.creationDate() == null) continue;
-
-            OffsetDateTime itemDate = OffsetDateTime.ofInstant(
-                Instant.ofEpochSecond(item.creationDate()), ZoneOffset.UTC);
-
-            String description = messageFormatter.formatStackOverflowUpdate(item, title, type, itemDate);
-
-            messageSender.send(new LinkUpdate()
-                .id(linkData.getId())
-                .url(linkData.getUrl())
-                .description(description)
-                .tgChatIds(chatIds));
-
-            if (itemDate.isAfter(newMax)) {
-                newMax = itemDate;
-            }
-        }
-        return newMax;
     }
 }

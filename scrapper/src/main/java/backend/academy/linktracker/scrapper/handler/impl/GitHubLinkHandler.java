@@ -5,7 +5,6 @@ import backend.academy.linktracker.scrapper.client.GitHubClient;
 import backend.academy.linktracker.scrapper.dto.GitHubIssueResponse;
 import backend.academy.linktracker.scrapper.handler.LinkHandler;
 import backend.academy.linktracker.scrapper.model.LinkData;
-import backend.academy.linktracker.scrapper.properties.ScrapperMessages;
 import backend.academy.linktracker.scrapper.service.UpdateMessageFormatter;
 import backend.academy.linktracker.scrapper.service.sender.MessageSender;
 import java.time.OffsetDateTime;
@@ -41,8 +40,7 @@ public class GitHubLinkHandler implements LinkHandler {
 
         OffsetDateTime maxUpdate = linkData.getLastUpdate();
         for (GitHubIssueResponse issue : newIssues) {
-            String type = (issue.htmlUrl() != null && issue.htmlUrl().contains("/pull/"))
-                ? "Pull Request" : "Issue";
+            String type = (issue.htmlUrl() != null && issue.htmlUrl().contains("/pull/")) ? "Pull Request" : "Issue";
 
             String description = messageFormatter.formatGitHubUpdate(issue, type);
 
@@ -57,16 +55,16 @@ public class GitHubLinkHandler implements LinkHandler {
 
     private void sendUpdate(List<Long> chatIds, LinkData linkData, String description) {
         messageSender.send(new LinkUpdate()
-            .id(linkData.getId())
-            .url(linkData.getUrl())
-            .description(description)
-            .tgChatIds(chatIds));
+                .id(linkData.getId())
+                .url(linkData.getUrl())
+                .description(description)
+                .tgChatIds(chatIds));
     }
 
     private String[] parsePath(String path) {
         if (path == null) return null;
         String[] parts = path.split("/");
         if (parts.length < 3) return null;
-        return new String[]{parts[1], parts[2]};
+        return new String[] {parts[1], parts[2]};
     }
 }

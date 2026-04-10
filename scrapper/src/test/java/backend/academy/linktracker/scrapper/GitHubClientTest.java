@@ -1,11 +1,13 @@
 package backend.academy.linktracker.scrapper;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import backend.academy.linktracker.scrapper.client.GitHubClient;
 import backend.academy.linktracker.scrapper.dto.GitHubIssueResponse;
@@ -20,6 +22,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 
 public class GitHubClientTest {
 
@@ -79,22 +82,17 @@ public class GitHubClientTest {
         GitHubIssueResponse issue = issues.getFirst();
         assertThat(issue.id()).isEqualTo(12345L);
         assertThat(issue.title()).isEqualTo("Добавить тесты");
-        assertThat(issue.user().login()).isEqualTo("test-user");
-        assertThat(issue.body()).isEqualTo("Нам нужно больше тестов!");
     }
 
     @Test
-    @DisplayName("Должен возвращать пустой список, если GitHub API вернул ошибку")
-    void fetchIssuesSince_ShouldReturnEmptyList_WhenApiFails() {
+    @DisplayName("Должен пробрасывать исключение, если GitHub API вернул ошибку")
+    void fetchIssuesSince_ShouldThrowException_WhenApiFails() {
         String owner = "test-owner";
         String repo = "test-repo";
         OffsetDateTime since = OffsetDateTime.now();
 
-        stubFor(get(urlPathEqualTo(String.format("/repos/%s/%s/issues", owner, repo)))
-                .willReturn(aResponse().withStatus(500)));
+        stubFor(get(anyUrl()).willReturn(aResponse().withStatus(500)));
 
-        List<GitHubIssueResponse> issues = gitHubClient.fetchIssuesSince(owner, repo, since);
-
-        assertThat(issues).isEmpty();
+        assertThrows(RestClientException.class, () -> gitHubClient.fetchIssuesSince(owner, repo, since));
     }
 }

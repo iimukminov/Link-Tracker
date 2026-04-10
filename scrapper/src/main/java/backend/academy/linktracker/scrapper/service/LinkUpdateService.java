@@ -49,16 +49,16 @@ public class LinkUpdateService {
 
             List<LinkData> batchPart = linksToUpdate.subList(i, end);
 
-            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                for (LinkData link : batchPart) {
-                    processLink(link);
-                }
-            }, linkUpdateExecutor);
+            CompletableFuture<Void> future = CompletableFuture.runAsync(
+                    () -> {
+                        for (LinkData link : batchPart) {
+                            processLink(link);
+                        }
+                    },
+                    linkUpdateExecutor);
 
             futures.add(future);
         }
-
-
 
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
     }

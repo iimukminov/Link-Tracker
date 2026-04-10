@@ -1,18 +1,18 @@
 package backend.academy.linktracker.scrapper;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import backend.academy.linktracker.bot.dto.LinkUpdate;
 import backend.academy.linktracker.scrapper.client.StackOverflowClient;
 import backend.academy.linktracker.scrapper.dto.StackOverflowResponse;
 import backend.academy.linktracker.scrapper.handler.impl.StackOverflowLinkHandler;
 import backend.academy.linktracker.scrapper.model.LinkData;
-import backend.academy.linktracker.scrapper.properties.ScrapperMessages;
+import backend.academy.linktracker.scrapper.service.UpdateMessageFormatter;
 import backend.academy.linktracker.scrapper.service.sender.MessageSender;
 import java.net.URI;
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -20,8 +20,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -36,62 +34,54 @@ class StackOverflowLinkHandlerTest {
     private MessageSender messageSender;
 
     @Mock
-    private ScrapperMessages scrapperMessages;
-
-    @Mock
-    private ScrapperMessages.Updates updatesConfig;
+    private UpdateMessageFormatter messageFormatter;
 
     @InjectMocks
     private StackOverflowLinkHandler stackOverflowLinkHandler;
 
-    @Captor
-    private ArgumentCaptor<LinkUpdate> updateCaptor;
-
     @Test
-    @DisplayName("Должен формировать и отправлять сообщение с названием вопроса, автором и превью ответа")
-    void handle_ShouldFormatAndSendMessage_WhenNewAnswersFound() {
-        long questionId = 123456L;
-        List<Long> chatIds = List.of(100L, 200L);
-        URI url = URI.create("https://stackoverflow.com/questions/" + questionId + "/how-to-exit-vim");
-        OffsetDateTime lastUpdate = OffsetDateTime.of(2023, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    @DisplayName("Должен обработать новые ответы с типом 'Ответ'")
+    void handle_shouldProcessAnswers() {
+        URI url = URI.create("https://stackoverflow.com/questions/123");
+        OffsetDateTime lastUpdate = OffsetDateTime.now(ZoneOffset.UTC).minusDays(1);
         LinkData linkData = new LinkData(1L, url, lastUpdate, List.of(), List.of());
 
-        StackOverflowResponse.Item questionItem =
-                new StackOverflowResponse.Item(questionId, 0L, null, null, "Как выйти из Vim?");
-        when(stackOverflowClient.fetchQuestion(questionId))
-                .thenReturn(Optional.of(new StackOverflowResponse(List.of(questionItem))));
+        StackOverflowResponse questionResp = new StackOverflowResponse(
+                List.of(new StackOverflowResponse.Item(123L, 0L, null, null, "Question title")));
+        when(stackOverflowClient.fetchQuestion(123L)).thenReturn(Optional.of(questionResp));
 
-        long newAnswerTime = Instant.now().getEpochSecond();
-        StackOverflowResponse.Item answerItem = new StackOverflowResponse.Item(
-                999L,
-                newAnswerTime,
-                new StackOverflowResponse.Owner("Jon Skeet"),
-                "Просто введите :wq и нажмите Enter. Это очень просто, если знать.",
-                null);
-        when(stackOverflowClient.fetchNewAnswers(questionId, lastUpdate))
-                .thenReturn(Optional.of(new StackOverflowResponse(List.of(answerItem))));
+        StackOverflowResponse.Item answer = new StackOverflowResponse.Item(
+                1L, OffsetDateTime.now().toEpochSecond(), new StackOverflowResponse.Owner("user"), "body", null);
 
-        when(stackOverflowClient.fetchNewComments(questionId, lastUpdate)).thenReturn(Optional.empty());
+        when(stackOverflowClient.fetchNewAnswers(eq(123L), eq(lastUpdate)))
+                .thenReturn(Optional.of(new StackOverflowResponse(List.of(answer))));
+        when(stackOverflowClient.fetchNewComments(anyLong(), any())).thenReturn(Optional.empty());
 
-        when(scrapperMessages.getUpdates()).thenReturn(updatesConfig);
-        when(updatesConfig.getStackoverflowUpdate()).thenReturn("Вопрос: %s\nАвтор: %s\nДата: %s\nПревью: %s");
+        stackOverflowLinkHandler.handle(List.of(1L), linkData);
 
-        stackOverflowLinkHandler.handle(chatIds, linkData);
+        verify(messageFormatter).formatStackOverflowUpdate(eq(answer), any(), eq("Ответ"), any());
+    }
 
-        verify(messageSender).send(updateCaptor.capture());
-        LinkUpdate sentUpdate = updateCaptor.getValue();
+    @Test
+    @DisplayName("Должен обработать новые комментарии с типом 'Комментарий'")
+    void handle_shouldProcessComments() {
+        URI url = URI.create("https://stackoverflow.com/questions/123");
+        OffsetDateTime lastUpdate = OffsetDateTime.now(ZoneOffset.UTC).minusDays(1);
+        LinkData linkData = new LinkData(1L, url, lastUpdate, List.of(), List.of());
 
-        assertThat(sentUpdate.getId()).isEqualTo(1L);
-        assertThat(sentUpdate.getUrl()).isEqualTo(url);
-        assertThat(sentUpdate.getTgChatIds()).containsExactly(100L, 200L);
+        StackOverflowResponse questionResp = new StackOverflowResponse(
+                List.of(new StackOverflowResponse.Item(123L, 0L, null, null, "Question title")));
+        when(stackOverflowClient.fetchQuestion(123L)).thenReturn(Optional.of(questionResp));
 
-        String description = sentUpdate.getDescription();
-        assertThat(description)
-                .contains("Вопрос: Как выйти из Vim?")
-                .contains("Автор: Jon Skeet")
-                .contains("Превью: Просто введите :wq");
+        StackOverflowResponse.Item comment = new StackOverflowResponse.Item(
+                2L, OffsetDateTime.now().toEpochSecond(), new StackOverflowResponse.Owner("user"), "body", null);
 
-        OffsetDateTime updatedTime = OffsetDateTime.ofInstant(Instant.ofEpochSecond(newAnswerTime), ZoneOffset.UTC);
-        assertThat(linkData.getLastUpdate()).isEqualTo(updatedTime);
+        when(stackOverflowClient.fetchNewAnswers(anyLong(), any())).thenReturn(Optional.empty());
+        when(stackOverflowClient.fetchNewComments(eq(123L), eq(lastUpdate)))
+                .thenReturn(Optional.of(new StackOverflowResponse(List.of(comment))));
+
+        stackOverflowLinkHandler.handle(List.of(1L), linkData);
+
+        verify(messageFormatter).formatStackOverflowUpdate(eq(comment), any(), eq("Комментарий"), any());
     }
 }

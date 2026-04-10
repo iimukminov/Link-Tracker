@@ -38,6 +38,7 @@ public class LinkRepositoryJpaAdapter implements LinkRepository {
             LinkEntity newLink = new LinkEntity();
             newLink.setUrl(url.toString());
             newLink.setLastUpdate(OffsetDateTime.now());
+            newLink.setLastCheckAt(OffsetDateTime.now());
             return newLink;
         });
 

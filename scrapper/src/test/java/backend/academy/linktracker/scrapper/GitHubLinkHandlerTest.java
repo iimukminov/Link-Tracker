@@ -1,6 +1,7 @@
 package backend.academy.linktracker.scrapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -10,7 +11,7 @@ import backend.academy.linktracker.scrapper.client.GitHubClient;
 import backend.academy.linktracker.scrapper.dto.GitHubIssueResponse;
 import backend.academy.linktracker.scrapper.handler.impl.GitHubLinkHandler;
 import backend.academy.linktracker.scrapper.model.LinkData;
-import backend.academy.linktracker.scrapper.properties.ScrapperMessages;
+import backend.academy.linktracker.scrapper.service.UpdateMessageFormatter;
 import backend.academy.linktracker.scrapper.service.sender.MessageSender;
 import java.net.URI;
 import java.time.OffsetDateTime;
@@ -35,10 +36,7 @@ class GitHubLinkHandlerTest {
     private MessageSender messageSender;
 
     @Mock
-    private ScrapperMessages scrapperMessages;
-
-    @Mock
-    private ScrapperMessages.Updates updatesConfig;
+    private UpdateMessageFormatter messageFormatter;
 
     @InjectMocks
     private GitHubLinkHandler gitHubLinkHandler;
@@ -47,40 +45,59 @@ class GitHubLinkHandlerTest {
     private ArgumentCaptor<LinkUpdate> updateCaptor;
 
     @Test
-    @DisplayName("Должен формировать и отправлять сообщение с названием, автором и превью")
-    void handle_ShouldFormatAndSendMessage_WhenNewIssuesFound() {
+    @DisplayName("Должен корректно определить тип Pull Request и отправить уведомление")
+    void handle_shouldDetectPullRequestAndSendUpdate() {
         List<Long> chatIds = List.of(12345L);
         URI url = URI.create("https://github.com/spring-projects/spring-boot");
-        OffsetDateTime lastUpdate = OffsetDateTime.of(2023, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+        OffsetDateTime lastUpdate = OffsetDateTime.now(ZoneOffset.UTC).minusDays(1);
         LinkData linkData = new LinkData(1L, url, lastUpdate, List.of(), List.of());
 
-        GitHubIssueResponse mockIssue = new GitHubIssueResponse(
+        GitHubIssueResponse mockPr = new GitHubIssueResponse(
                 999L,
-                "Как исправить баг в транзакциях?",
-                "https://github.com/spring-projects/spring-boot/issues/999",
-                OffsetDateTime.now(),
-                "Это очень длинный текст проблемы, который должен быть обрезан или показан как превью.",
-                new GitHubIssueResponse.User("TestAuthor"));
+                "New Feature PR",
+                "https://github.com/spring-projects/spring-boot/pull/999",
+                OffsetDateTime.now(ZoneOffset.UTC),
+                "PR Body",
+                new GitHubIssueResponse.User("Author"));
 
         when(gitHubClient.fetchIssuesSince(eq("spring-projects"), eq("spring-boot"), eq(lastUpdate)))
-                .thenReturn(List.of(mockIssue));
+                .thenReturn(List.of(mockPr));
 
-        when(scrapperMessages.getUpdates()).thenReturn(updatesConfig);
-        when(updatesConfig.getGithubUpdate()).thenReturn("Новый Issue: %s\nАвтор: %s\nДата: %s\nПревью: %s");
+        String expectedDescription = "Formatted PR Message";
+        when(messageFormatter.formatGitHubUpdate(eq(mockPr), eq("Pull Request")))
+                .thenReturn(expectedDescription);
 
         gitHubLinkHandler.handle(chatIds, linkData);
 
         verify(messageSender).send(updateCaptor.capture());
         LinkUpdate sentUpdate = updateCaptor.getValue();
 
-        assertThat(sentUpdate.getId()).isEqualTo(1L);
-        assertThat(sentUpdate.getUrl()).isEqualTo(url);
-        assertThat(sentUpdate.getTgChatIds()).containsExactly(12345L);
+        assertThat(sentUpdate.getDescription()).isEqualTo(expectedDescription);
+        assertThat(linkData.getLastUpdate()).isEqualTo(mockPr.createdAt());
+    }
 
-        String description = sentUpdate.getDescription();
-        assertThat(description)
-                .contains("Новый Issue: Как исправить баг в транзакциях?")
-                .contains("Автор: TestAuthor")
-                .contains("Превью: Это очень длинный текст проблемы");
+    @Test
+    @DisplayName("Должен корректно определить тип Issue")
+    void handle_shouldDetectIssue() {
+        URI url = URI.create("https://github.com/user/repo");
+        OffsetDateTime lastUpdate = OffsetDateTime.now(ZoneOffset.UTC).minusDays(1);
+        LinkData linkData = new LinkData(1L, url, lastUpdate, List.of(), List.of());
+
+        GitHubIssueResponse mockIssue = new GitHubIssueResponse(
+                20L,
+                "Issue Title",
+                "https://github.com/user/repo/issues/20",
+                OffsetDateTime.now(ZoneOffset.UTC),
+                "Issue Body",
+                new GitHubIssueResponse.User("author"));
+
+        when(gitHubClient.fetchIssuesSince(eq("user"), eq("repo"), eq(lastUpdate)))
+                .thenReturn(List.of(mockIssue));
+        when(messageFormatter.formatGitHubUpdate(eq(mockIssue), eq("Issue"))).thenReturn("Formatted Issue");
+
+        gitHubLinkHandler.handle(List.of(1L), linkData);
+
+        verify(messageFormatter).formatGitHubUpdate(any(), eq("Issue"));
+        verify(messageSender).send(any());
     }
 }

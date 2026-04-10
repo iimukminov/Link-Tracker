@@ -16,24 +16,25 @@ public class UpdateMessageFormatter {
 
     public String formatGitHubUpdate(GitHubIssueResponse issue, String type) {
         return String.format(
-            scrapperMessages.getUpdates().getGithubUpdate(),
-            type,
-            issue.title(),
-            issue.user() != null ? issue.user().login() : "Unknown",
-            issue.createdAt(),
-            LinkUtils.truncateBody(issue.body(), scrapperMessages.getUpdates().getGithubNoDescription())
-        );
+                scrapperMessages.getUpdates().getGithubUpdate(),
+                type,
+                issue.title(),
+                issue.user() != null ? issue.user().login() : "Unknown",
+                issue.createdAt(),
+                LinkUtils.truncateBody(
+                        issue.body(), scrapperMessages.getUpdates().getGithubNoDescription()));
     }
 
-    public String formatStackOverflowUpdate(StackOverflowResponse.Item item, String questionTitle, String type, OffsetDateTime date) {
+    public String formatStackOverflowUpdate(
+            StackOverflowResponse.Item item, String questionTitle, String type, OffsetDateTime date) {
         String author = item.owner() != null ? item.owner().displayName() : "Unknown";
         return String.format(
-            scrapperMessages.getUpdates().getStackoverflowUpdate(),
-            type,
-            questionTitle,
-            author,
-            date,
-            LinkUtils.truncateBody(item.body(), scrapperMessages.getUpdates().getStackoverflowNoDescription())
-        );
+                scrapperMessages.getUpdates().getStackoverflowUpdate(),
+                type,
+                questionTitle,
+                author,
+                date,
+                LinkUtils.truncateBody(
+                        item.body(), scrapperMessages.getUpdates().getStackoverflowNoDescription()));
     }
 }

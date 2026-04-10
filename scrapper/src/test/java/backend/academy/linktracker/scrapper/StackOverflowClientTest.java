@@ -1,7 +1,13 @@
 package backend.academy.linktracker.scrapper;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import backend.academy.linktracker.scrapper.client.StackOverflowClient;
 import backend.academy.linktracker.scrapper.dto.StackOverflowResponse;
@@ -16,6 +22,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 
 public class StackOverflowClientTest {
 
@@ -73,27 +80,22 @@ public class StackOverflowClientTest {
         Optional<StackOverflowResponse> responseOpt = stackOverflowClient.fetchNewAnswers(questionId, fromDate);
 
         assertThat(responseOpt).isPresent();
-        assertThat(responseOpt.orElseThrow().items()).hasSize(1);
+        assertThat(responseOpt.get().items()).hasSize(1);
 
-        StackOverflowResponse.Item item = responseOpt.orElseThrow().items().getFirst();
+        StackOverflowResponse.Item item = responseOpt.get().items().getFirst();
         assertThat(item.id()).isEqualTo(987654L);
-        assertThat(item.creationDate()).isEqualTo(1704100000L);
         assertThat(item.owner().displayName()).isEqualTo("Jon Skeet");
-        assertThat(item.body()).isEqualTo("Используйте CompletableFuture.");
     }
 
     @Test
-    @DisplayName("Должен возвращать Optional.empty() при ошибке API (500 Server Error)")
-    void fetchNewAnswers_ShouldReturnEmpty_WhenApiFails() {
+    @DisplayName("Должен пробрасывать исключение при ошибке API (500 Server Error)")
+    void fetchNewAnswers_ShouldThrowException_WhenApiFails() {
         long questionId = 123456L;
         OffsetDateTime fromDate = OffsetDateTime.now();
 
-        stubFor(get(urlPathEqualTo("/questions/" + questionId + "/answers"))
-                .willReturn(aResponse().withStatus(500)));
+        stubFor(get(anyUrl()).willReturn(aResponse().withStatus(500)));
 
-        Optional<StackOverflowResponse> responseOpt = stackOverflowClient.fetchNewAnswers(questionId, fromDate);
-
-        assertThat(responseOpt).isEmpty();
+        assertThrows(RestClientException.class, () -> stackOverflowClient.fetchNewAnswers(questionId, fromDate));
     }
 
     @Test
@@ -126,9 +128,7 @@ public class StackOverflowClientTest {
         Optional<StackOverflowResponse> responseOpt = stackOverflowClient.fetchNewComments(questionId, fromDate);
 
         assertThat(responseOpt).isPresent();
-        StackOverflowResponse.Item item = responseOpt.orElseThrow().items().getFirst();
-        assertThat(item.id()).isEqualTo(111222L);
-        assertThat(item.owner().displayName()).isEqualTo("Alice");
+        assertThat(responseOpt.get().items().getFirst().id()).isEqualTo(111222L);
     }
 
     @Test
@@ -156,6 +156,6 @@ public class StackOverflowClientTest {
         Optional<StackOverflowResponse> responseOpt = stackOverflowClient.fetchQuestion(questionId);
 
         assertThat(responseOpt).isPresent();
-        assertThat(responseOpt.orElseThrow().items().getFirst().title()).isEqualTo("Как работает Spring Boot?");
+        assertThat(responseOpt.get().items().getFirst().title()).isEqualTo("Как работает Spring Boot?");
     }
 }

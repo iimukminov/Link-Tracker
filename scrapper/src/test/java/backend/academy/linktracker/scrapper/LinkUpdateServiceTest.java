@@ -29,6 +29,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -56,13 +57,11 @@ class LinkUpdateServiceTest {
     private ScrapperMessages scrapperMessages;
 
     private ExecutorService linkUpdateExecutor;
-
     private LinkUpdateService linkUpdateService;
 
     @BeforeEach
     void setUp() {
         linkUpdateExecutor = Executors.newFixedThreadPool(2);
-
         linkUpdateService = new LinkUpdateService(
                 linkRepository,
                 chatRepository,
@@ -81,23 +80,21 @@ class LinkUpdateServiceTest {
     }
 
     @Test
+    @DisplayName("Должен корректно группировать ID чатов и уведомлять только подписчиков")
     void update_shouldGroupChatIdsByUrlAndNotifyOnlySubscribers() {
         when(schedulerProperties.getForceCheckDelay()).thenReturn(Duration.ofMinutes(10));
         when(schedulerProperties.getBatchSize()).thenReturn(50);
+        when(schedulerProperties.getThreadsCount()).thenReturn(1);
 
-        URI githubUrl = URI.create("https://github.com/user/repo");
-        URI stackoverflowUrl = URI.create("https://stackoverflow.com/questions/123");
+        LinkData githubLink = new LinkData(
+                1L,
+                URI.create("https://github.com/user/repo"),
+                OffsetDateTime.now().minusMinutes(15),
+                List.of(),
+                List.of());
 
-        LinkData githubLink = new LinkData(1L, githubUrl, OffsetDateTime.now().minusMinutes(15), List.of(), List.of());
-        LinkData soLink =
-                new LinkData(2L, stackoverflowUrl, OffsetDateTime.now().minusMinutes(15), List.of(), List.of());
-
-        when(linkRepository.findLinksToUpdate(any(OffsetDateTime.class), anyInt()))
-                .thenReturn(List.of(githubLink, soLink));
-
+        when(linkRepository.findLinksToUpdate(any(), anyInt())).thenReturn(List.of(githubLink));
         when(githubHandler.supports("github.com")).thenReturn(true);
-        when(githubHandler.supports("stackoverflow.com")).thenReturn(false);
-
         when(chatRepository.findAllByLinkId(1L)).thenReturn(List.of(100L, 200L));
 
         linkUpdateService.updateLinks();
@@ -107,13 +104,12 @@ class LinkUpdateServiceTest {
                         argThat(chatIds -> chatIds.size() == 2 && chatIds.containsAll(List.of(100L, 200L))),
                         eq(githubLink));
 
-        verify(githubHandler, never()).handle(argThat(ids -> ids.contains(300L)), any());
-
-        verify(linkRepository, times(1)).updateLastUpdateTime(eq(1L), any());
-        verify(linkRepository, times(1)).updateLastUpdateTime(eq(2L), any());
+        verify(linkRepository).updateLastUpdateTime(eq(1L), any());
+        verify(linkRepository).updateLastCheckTime(eq(1L), any());
     }
 
     @Test
+    @DisplayName("Должен изолировать ошибки обработки одной ссылки и уведомлять пользователя")
     void updateLinks_shouldIsolateErrorsAndNotifyUser() {
         LinkData badLink = new LinkData(
                 1L,
@@ -130,13 +126,15 @@ class LinkUpdateServiceTest {
 
         when(schedulerProperties.getForceCheckDelay()).thenReturn(Duration.ofMinutes(10));
         when(schedulerProperties.getBatchSize()).thenReturn(50);
+        when(schedulerProperties.getThreadsCount()).thenReturn(1);
         when(linkRepository.findLinksToUpdate(any(), anyInt())).thenReturn(List.of(badLink, goodLink));
 
         when(githubHandler.supports(anyString())).thenReturn(true);
         when(chatRepository.findAllByLinkId(anyLong())).thenReturn(List.of(100L));
 
-        when(scrapperMessages.getErrors()).thenReturn(new ScrapperMessages.Errors());
-        scrapperMessages.getErrors().setProcessingError("Error msg");
+        ScrapperMessages.Errors errors = new ScrapperMessages.Errors();
+        errors.setProcessingError("Error msg");
+        when(scrapperMessages.getErrors()).thenReturn(errors);
 
         doThrow(new RuntimeException("API DOWN")).when(githubHandler).handle(anyList(), eq(badLink));
 
@@ -144,7 +142,11 @@ class LinkUpdateServiceTest {
 
         verify(githubHandler).handle(anyList(), eq(goodLink));
 
-        verify(linkRepository, times(2)).updateLastUpdateTime(anyLong(), any());
+        verify(linkRepository).updateLastUpdateTime(eq(2L), any());
+        verify(linkRepository, never()).updateLastUpdateTime(eq(1L), any());
+
+        verify(linkRepository, times(1)).updateLastCheckTime(eq(1L), any());
+        verify(linkRepository, times(1)).updateLastCheckTime(eq(2L), any());
 
         verify(messageSender)
                 .send(argThat(update ->

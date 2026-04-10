@@ -9,7 +9,7 @@ scrapper:
       processingError: "Ошибка: не удалось обработать эту ссылку. Возможно, ресурс недоступен."
 
     updates:
-      githubUpdate: "Новый Issue/Pull Request: %s\nАвтор: %s\nСоздано: %s\n\n%s"
+      githubUpdate: "Новый %s: %s\nАвтор: %s\nСоздано: %s\n\n%s"
       githubNoDescription: "*Нет описания*"
-      stackoverflowUpdate: "Обновление в вопросе: %s\nАвтор: %s\nСоздано: %s\n\n%s"
+      stackoverflowUpdate: "%s в вопросе: %s\nАвтор: %s\nСоздано: %s\n\n%s"
       stackoverflowNoDescription: "*Нет текста*"
