@@ -9,6 +9,7 @@ import backend.academy.linktracker.scrapper.repository.ChatRepository;
 import backend.academy.linktracker.scrapper.repository.LinkRepository;
 import backend.academy.linktracker.scrapper.service.sender.MessageSender;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -36,9 +37,28 @@ public class LinkUpdateService {
 
         if (linksToUpdate.isEmpty()) return;
 
-        List<CompletableFuture<Void>> futures = linksToUpdate.stream()
-                .map(linkData -> CompletableFuture.runAsync(() -> processLink(linkData), linkUpdateExecutor))
-                .toList();
+        int threads = schedulerProperties.getThreadsCount();
+        int totalLinks = linksToUpdate.size();
+
+        int chunkSize = (int) Math.ceil((double) totalLinks / threads);
+
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+        for (int i = 0; i < totalLinks; i += chunkSize) {
+            int end = Math.min(i + chunkSize, totalLinks);
+
+            List<LinkData> batchPart = linksToUpdate.subList(i, end);
+
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                for (LinkData link : batchPart) {
+                    processLink(link);
+                }
+            }, linkUpdateExecutor);
+
+            futures.add(future);
+        }
+
+
 
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
     }
