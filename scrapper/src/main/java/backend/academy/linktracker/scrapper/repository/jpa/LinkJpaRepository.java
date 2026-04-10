@@ -24,7 +24,13 @@ public interface LinkJpaRepository extends JpaRepository<LinkEntity, Long> {
 
     List<LinkEntity> findByLastUpdateBefore(OffsetDateTime time, Pageable pageable);
 
+    List<LinkEntity> findByLastCheckAtBefore(OffsetDateTime time, Pageable pageable);
+
     boolean existsByChatsIdAndUrl(Long chatId, String url);
+
+    @Modifying
+    @Query(value = "UPDATE link SET last_check_at = :time WHERE id = :id", nativeQuery = true)
+    void updateLastCheck(@Param("id") Long id, @Param("time") OffsetDateTime time);
 
     @Modifying
     @Query(value = "UPDATE link SET last_update = :time WHERE id = :id", nativeQuery = true)

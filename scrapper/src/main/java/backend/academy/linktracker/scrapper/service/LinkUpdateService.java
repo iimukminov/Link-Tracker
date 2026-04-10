@@ -54,6 +54,7 @@ public class LinkUpdateService {
                     List<Long> chatIds = chatRepository.findAllByLinkId(linkData.getId());
                     if (!chatIds.isEmpty()) {
                         linkHandler.handle(chatIds, linkData);
+                        linkRepository.updateLastUpdateTime(linkData.getId(), linkData.getLastUpdate());
                     }
                     isHandled = true;
                     break;
@@ -68,7 +69,7 @@ public class LinkUpdateService {
             log.atError().addKeyValue("url", linkData.getUrl()).setCause(e).log("Failed to process link");
             reportError(linkData);
         } finally {
-            linkRepository.updateLastUpdateTime(linkData.getId(), OffsetDateTime.now());
+            linkRepository.updateLastCheckTime(linkData.getId(), OffsetDateTime.now());
         }
     }
 

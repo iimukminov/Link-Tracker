@@ -1,0 +1,3 @@
+ALTER TABLE link ADD COLUMN last_check_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL;
+
+CREATE INDEX idx_link_last_check_at ON link(last_check_at);
