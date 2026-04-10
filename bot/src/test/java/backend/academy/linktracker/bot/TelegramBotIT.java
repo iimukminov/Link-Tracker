@@ -41,7 +41,7 @@ import org.wiremock.spring.EnableWireMock;
 @Import(TestcontainersConfiguration.class)
 @ActiveProfiles("test")
 @EnableWireMock
-class TelegramBotIntegrationTest implements WithAssertions {
+class TelegramBotIT implements WithAssertions {
 
     @Autowired
     TelegramBot telegramBot;
