@@ -26,6 +26,11 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 app:
   bot:
@@ -52,3 +57,14 @@ app:
   database:
     #SQL или ORM
     access-type: ORM
+
+  use-queue: true
+  kafka:
+    topic: ${KAFKA_TOPIC_LINK_UPDATES}
+    partitions: 3
+    replicas: 3
+
+  use-outbox: true
+  outbox:
+    interval: 5000
+    batch-size: 100
