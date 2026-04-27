@@ -1,15 +1,16 @@
 package backend.academy.linktracker.scrapper.entity;
 
 import jakarta.persistence.*;
+import java.time.OffsetDateTime;
 import lombok.Getter;
 import lombok.Setter;
-import java.time.OffsetDateTime;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "outbox_event")
-@Getter @Setter
+@Getter
+@Setter
 public class OutboxEvent {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,6 +34,8 @@ public class OutboxEvent {
     private OffsetDateTime lastRetryAt;
 
     public enum OutboxStatus {
-        PENDING, SENT, FAILED
+        PENDING,
+        SENT,
+        FAILED
     }
 }

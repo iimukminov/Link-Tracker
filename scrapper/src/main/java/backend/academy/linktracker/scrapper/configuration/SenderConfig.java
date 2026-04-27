@@ -1,6 +1,5 @@
 package backend.academy.linktracker.scrapper.configuration;
 
-import backend.academy.linktracker.bot.dto.LinkUpdate;
 import backend.academy.linktracker.scrapper.properties.KafkaProperties;
 import backend.academy.linktracker.scrapper.service.sender.MessageSender;
 import backend.academy.linktracker.scrapper.service.sender.impl.KafkaBotMessageSender;
@@ -17,8 +16,7 @@ public class SenderConfig {
     @Bean
     @ConditionalOnProperty(prefix = "app", name = "use-queue", havingValue = "true")
     public MessageSender kafkaBotMessageSender(
-            KafkaTemplate<String, LinkUpdate> kafkaTemplate,
-            KafkaProperties kafkaProperties) {
+            KafkaTemplate<String, Object> kafkaTemplate, KafkaProperties kafkaProperties) {
 
         return new KafkaBotMessageSender(kafkaTemplate, kafkaProperties.getTopic());
     }

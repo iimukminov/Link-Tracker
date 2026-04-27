@@ -22,7 +22,6 @@ public class HttpSenderIT {
     @Test
     @DisplayName("При app.use-queue=false должен загружаться HttpBotMessageSender")
     void shouldLoadHttpSenderWhenQueueIsDisabled() {
-        assertTrue(messageSender instanceof HttpBotMessageSender,
-            "Должен быть загружен HTTP клиент, а не Kafka");
+        assertTrue(messageSender instanceof HttpBotMessageSender, "Должен быть загружен HTTP клиент, а не Kafka");
     }
 }

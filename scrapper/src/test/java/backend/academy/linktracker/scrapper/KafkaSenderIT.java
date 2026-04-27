@@ -15,10 +15,7 @@ import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
-@TestPropertySource(properties = {
-    "app.use-queue=true",
-    "app.kafka.topic=test-updates"
-})
+@TestPropertySource(properties = {"app.use-queue=true", "app.kafka.topic=test-updates"})
 public class KafkaSenderIT {
 
     @Autowired
@@ -28,12 +25,11 @@ public class KafkaSenderIT {
     @DisplayName("Проверка успешной отправки сообщения в Kafka Testcontainer")
     void shouldSendMessageToKafkaWithoutExceptions() {
         LinkUpdate update = new LinkUpdate()
-            .id(1L)
-            .url(URI.create("https://github.com/test"))
-            .description("Test Update")
-            .tgChatIds(List.of(123L));
+                .id(1L)
+                .url(URI.create("https://github.com/test"))
+                .description("Test Update")
+                .tgChatIds(List.of(123L));
 
-        assertDoesNotThrow(() -> messageSender.send(update),
-            "Отправка сообщения в Kafka не должна вызывать ошибок");
+        assertDoesNotThrow(() -> messageSender.send(update), "Отправка сообщения в Kafka не должна вызывать ошибок");
     }
 }

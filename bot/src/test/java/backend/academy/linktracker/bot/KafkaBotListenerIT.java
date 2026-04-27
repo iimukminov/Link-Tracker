@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.DisplayName;
@@ -34,10 +33,7 @@ import org.testcontainers.kafka.KafkaContainer;
 @SpringBootTest
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
-@TestPropertySource(properties = {
-    "app.kafka.topic=test-updates",
-    "app.kafka.dlq-topic=test-updates_dlq"
-})
+@TestPropertySource(properties = {"app.kafka.topic=test-updates", "app.kafka.dlq-topic=test-updates_dlq"})
 public class KafkaBotListenerIT {
 
     @Autowired
@@ -53,16 +49,15 @@ public class KafkaBotListenerIT {
     @DisplayName("Валидное сообщение из Kafka успешно обрабатывается")
     void shouldProcessValidMessage() {
         LinkUpdate update = new LinkUpdate()
-            .id(1L)
-            .url(URI.create("https://github.com/test"))
-            .description("Test Update")
-            .tgChatIds(List.of(123456L));
+                .id(1L)
+                .url(URI.create("https://github.com/test"))
+                .description("Test Update")
+                .tgChatIds(List.of(123456L));
 
         kafkaTemplate.send("test-updates", String.valueOf(update.getId()), update);
 
-        await().atMost(Duration.ofSeconds(5)).untilAsserted(() ->
-            verify(telegramSender).sendMessage(anyLong(), anyString())
-        );
+        await().atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(telegramSender).sendMessage(anyLong(), anyString()));
     }
 
     @Test
@@ -73,20 +68,22 @@ public class KafkaBotListenerIT {
 
         kafkaTemplate.send("test-updates", "invalid-key", invalidJson).get();
 
-        Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("test-dlq-group-" + System.currentTimeMillis(), "false");
+        Map<String, Object> consumerProps =
+                KafkaTestUtils.consumerProps("test-dlq-group-" + System.currentTimeMillis(), "false");
         consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaContainer.getBootstrapServers());
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
-        try (Consumer<String, String> dlqConsumer = new DefaultKafkaConsumerFactory<String, String>(consumerProps).createConsumer()) {
+        try (Consumer<String, String> dlqConsumer =
+                new DefaultKafkaConsumerFactory<String, String>(consumerProps).createConsumer()) {
 
             TopicPartition partition = new TopicPartition(dlqTopic, 0);
             dlqConsumer.assign(List.of(partition));
             dlqConsumer.seekToBeginning(List.of(partition));
 
             org.apache.kafka.clients.consumer.ConsumerRecord<String, String> record =
-                KafkaTestUtils.getSingleRecord(dlqConsumer, dlqTopic, Duration.ofSeconds(15));
+                    KafkaTestUtils.getSingleRecord(dlqConsumer, dlqTopic, Duration.ofSeconds(15));
 
             assertThat(record.value()).contains("NOT A JSON OBJECT");
         }
@@ -96,14 +93,13 @@ public class KafkaBotListenerIT {
     @DisplayName("Дубликат сообщения из Kafka не должен отправляться повторно (идемпотентность)")
     void shouldNotSendDuplicateMessages() {
         LinkUpdate update = new LinkUpdate()
-            .id(2L)
-            .url(URI.create("https://github.com/test-duplicate"))
-            .description("Duplicate Test")
-            .tgChatIds(List.of(123456L));
+                .id(2L)
+                .url(URI.create("https://github.com/test-duplicate"))
+                .description("Duplicate Test")
+                .tgChatIds(List.of(123456L));
 
         kafkaTemplate.send("test-updates", String.valueOf(update.getId()), update);
         kafkaTemplate.send("test-updates", String.valueOf(update.getId()), update);
-
 
         await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
             verify(telegramSender, times(1)).sendMessage(anyLong(), anyString());

@@ -2,11 +2,11 @@ package backend.academy.linktracker.scrapper.repository.jdbc;
 
 import backend.academy.linktracker.scrapper.entity.OutboxEvent;
 import backend.academy.linktracker.scrapper.repository.OutboxRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import java.util.List;
 
 @Repository
 @ConditionalOnProperty(prefix = "app.database", name = "access-type", havingValue = "SQL")
@@ -17,20 +17,24 @@ public class OutboxRepositoryJdbcAdapter implements OutboxRepository {
     @Override
     public void save(OutboxEvent event) {
         String sql = "INSERT INTO outbox_event (payload, topic, status) VALUES (?::jsonb, ?, ?)";
-        jdbcTemplate.update(sql, event.getPayload(), event.getTopic(), event.getStatus().name());
+        jdbcTemplate.update(
+                sql, event.getPayload(), event.getTopic(), event.getStatus().name());
     }
 
     @Override
     public List<OutboxEvent> findPending(int limit) {
         String sql = "SELECT * FROM outbox_event WHERE status = 'PENDING' ORDER BY created_at ASC LIMIT ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            OutboxEvent event = new OutboxEvent();
-            event.setId(rs.getLong("id"));
-            event.setPayload(rs.getString("payload"));
-            event.setTopic(rs.getString("topic"));
-            event.setStatus(OutboxEvent.OutboxStatus.valueOf(rs.getString("status")));
-            return event;
-        }, limit);
+        return jdbcTemplate.query(
+                sql,
+                (rs, rowNum) -> {
+                    OutboxEvent event = new OutboxEvent();
+                    event.setId(rs.getLong("id"));
+                    event.setPayload(rs.getString("payload"));
+                    event.setTopic(rs.getString("topic"));
+                    event.setStatus(OutboxEvent.OutboxStatus.valueOf(rs.getString("status")));
+                    return event;
+                },
+                limit);
     }
 
     @Override

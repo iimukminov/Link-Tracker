@@ -29,12 +29,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
-@TestPropertySource(properties = {
-    "app.use-queue=true",
-    "app.use-outbox=true",
-    "app.scheduler.enable=false",
-    "app.outbox.interval=100000"
-})
+@TestPropertySource(
+        properties = {
+            "app.use-queue=true",
+            "app.use-outbox=true",
+            "app.scheduler.enable=false",
+            "app.outbox.interval=100000"
+        })
 public class OutboxIT {
 
     @Autowired
@@ -60,9 +61,12 @@ public class OutboxIT {
     @Test
     @DisplayName("Сценарий 1: Успешная отправка меняет статус на SENT")
     void shouldChangeStatusToSentWhenKafkaIsAvailable() {
-        LinkUpdate update = new LinkUpdate().id(101L).url(URI.create("https://github.com/ok")).description("Test");
+        LinkUpdate update = new LinkUpdate()
+                .id(101L)
+                .url(URI.create("https://github.com/ok"))
+                .description("Test");
         when(kafkaTemplate.send(any(), any(), any()))
-            .thenReturn(CompletableFuture.completedFuture(new SendResult<>(null, null)));
+                .thenReturn(CompletableFuture.completedFuture(new SendResult<>(null, null)));
 
         messageSender.send(update);
 
@@ -74,15 +78,18 @@ public class OutboxIT {
 
         verify(kafkaTemplate, times(1)).send(any(), eq("101"), any());
 
-        String status = jdbcTemplate.queryForObject(
-            "SELECT status FROM outbox_event WHERE id = ?", String.class, eventId);
+        String status =
+                jdbcTemplate.queryForObject("SELECT status FROM outbox_event WHERE id = ?", String.class, eventId);
         assertThat(status).isEqualTo("SENT");
     }
 
     @Test
     @DisplayName("Сценарий 2: Падение сети (Кафки) оставляет статус PENDING")
     void shouldKeepStatusPendingWhenKafkaIsDown() {
-        LinkUpdate update = new LinkUpdate().id(202L).url(URI.create("https://github.com/fail")).description("Fail");
+        LinkUpdate update = new LinkUpdate()
+                .id(202L)
+                .url(URI.create("https://github.com/fail"))
+                .description("Fail");
 
         CompletableFuture<SendResult<String, Object>> failedFuture = new CompletableFuture<>();
         failedFuture.completeExceptionally(new RuntimeException("Network timeout simulation"));
@@ -96,8 +103,8 @@ public class OutboxIT {
 
         outboxScheduler.processOutbox();
 
-        String status = jdbcTemplate.queryForObject(
-            "SELECT status FROM outbox_event WHERE id = ?", String.class, eventId);
+        String status =
+                jdbcTemplate.queryForObject("SELECT status FROM outbox_event WHERE id = ?", String.class, eventId);
         assertThat(status).isEqualTo("PENDING");
     }
 }
