@@ -14,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 public class ScrapperMessages {
 
     private Errors errors = new Errors();
+    private Updates updates = new Updates();
 
     @Getter
     @Setter
@@ -38,5 +39,30 @@ public class ScrapperMessages {
         @NotNull
         @NotEmpty
         private String chatAlreadyRegistered;
+
+        @NotNull
+        @NotEmpty
+        private String processingError;
+    }
+
+    @Getter
+    @Setter
+    @Validated
+    public static class Updates {
+        @NotNull
+        @NotEmpty
+        private String githubUpdate;
+
+        @NotNull
+        @NotEmpty
+        private String githubNoDescription;
+
+        @NotNull
+        @NotEmpty
+        private String stackoverflowUpdate;
+
+        @NotNull
+        @NotEmpty
+        private String stackoverflowNoDescription;
     }
 }

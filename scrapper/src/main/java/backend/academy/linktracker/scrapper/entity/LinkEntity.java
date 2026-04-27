@@ -34,6 +34,9 @@ public class LinkEntity {
     @Column(name = "last_update", nullable = false)
     private OffsetDateTime lastUpdate;
 
+    @Column(name = "last_check_at", nullable = false)
+    private OffsetDateTime lastCheckAt;
+
     @ManyToMany(mappedBy = "links")
     private Set<ChatEntity> chats = new HashSet<>();
 

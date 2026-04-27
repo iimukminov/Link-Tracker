@@ -109,11 +109,18 @@ public class LinkRepositoryJdbcAdapter implements LinkRepository {
             FROM link l
             LEFT JOIN link_tag lt ON l.id = lt.link_id
             LEFT JOIN tag t ON lt.tag_id = t.id
-            WHERE l.last_update < ?
+            WHERE l.last_check_at < ?
             GROUP BY l.id, l.url, l.last_update
+            ORDER BY l.last_check_at ASC
             LIMIT ?
         """;
         return jdbcTemplate.query(sql, new LinkDataRowMapper(), olderThan, limit);
+    }
+
+    @Override
+    public void updateLastCheckTime(long linkId, OffsetDateTime lastCheck) {
+        String sql = "UPDATE link SET last_check_at = ? WHERE id = ?";
+        jdbcTemplate.update(sql, lastCheck, linkId);
     }
 
     @Override

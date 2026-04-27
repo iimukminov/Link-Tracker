@@ -1,7 +1,8 @@
 package backend.academy.linktracker.scrapper.client;
 
-import backend.academy.linktracker.scrapper.dto.GitHubResponse;
-import java.util.Optional;
+import backend.academy.linktracker.scrapper.dto.GitHubIssueResponse;
+import java.time.OffsetDateTime;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.RestClient;
 
@@ -13,21 +14,17 @@ public class GitHubClient {
         this.restClient = restClient;
     }
 
-    public Optional<GitHubResponse> fetchUpdate(String owner, String repo) {
-        try {
-            GitHubResponse response = restClient
-                    .get()
-                    .uri("/repos/{owner}/{repo}", owner, repo)
-                    .retrieve()
-                    .body(GitHubResponse.class);
-            return Optional.ofNullable(response);
-        } catch (Exception e) {
-            log.atError()
-                    .addKeyValue("owner", owner)
-                    .addKeyValue("repo", repo)
-                    .setCause(e)
-                    .log("Error fetching GitHub update");
-            return Optional.empty();
-        }
+    public List<GitHubIssueResponse> fetchIssuesSince(String owner, String repo, OffsetDateTime since) {
+        GitHubIssueResponse[] issueResponses = restClient
+                .get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/repos/{owner}/{repo}/issues")
+                        .queryParam("since", since.toString())
+                        .queryParam("state", "all")
+                        .build(owner, repo))
+                .retrieve()
+                .body(GitHubIssueResponse[].class);
+
+        return issueResponses != null ? List.of(issueResponses) : List.of();
     }
 }

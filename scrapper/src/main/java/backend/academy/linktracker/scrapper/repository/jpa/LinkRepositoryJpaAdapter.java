@@ -38,6 +38,7 @@ public class LinkRepositoryJpaAdapter implements LinkRepository {
             LinkEntity newLink = new LinkEntity();
             newLink.setUrl(url.toString());
             newLink.setLastUpdate(OffsetDateTime.now());
+            newLink.setLastCheckAt(OffsetDateTime.now());
             return newLink;
         });
 
@@ -94,9 +95,15 @@ public class LinkRepositoryJpaAdapter implements LinkRepository {
     @Override
     @Transactional(readOnly = true)
     public List<LinkData> findLinksToUpdate(OffsetDateTime olderThan, int limit) {
-        return linkRepository.findByLastUpdateBefore(olderThan, PageRequest.of(0, limit)).stream()
+        return linkRepository.findByLastCheckAtBefore(olderThan, PageRequest.of(0, limit)).stream()
                 .map(this::mapToLinkData)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public void updateLastCheckTime(long linkId, OffsetDateTime lastCheck) {
+        linkRepository.updateLastCheck(linkId, lastCheck);
     }
 
     @Override

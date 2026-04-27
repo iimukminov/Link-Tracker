@@ -1,10 +1,13 @@
 package backend.academy.linktracker.scrapper.handler.impl;
 
 import backend.academy.linktracker.bot.dto.LinkUpdate;
-import backend.academy.linktracker.scrapper.client.BotClient;
 import backend.academy.linktracker.scrapper.client.GitHubClient;
+import backend.academy.linktracker.scrapper.dto.GitHubIssueResponse;
 import backend.academy.linktracker.scrapper.handler.LinkHandler;
 import backend.academy.linktracker.scrapper.model.LinkData;
+import backend.academy.linktracker.scrapper.service.UpdateMessageFormatter;
+import backend.academy.linktracker.scrapper.service.sender.MessageSender;
+import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +19,8 @@ import org.springframework.stereotype.Component;
 public class GitHubLinkHandler implements LinkHandler {
 
     private final GitHubClient gitHubClient;
-    private final BotClient botClient;
+    private final MessageSender messageSender;
+    private final UpdateMessageFormatter messageFormatter;
 
     @Override
     public boolean supports(String host) {
@@ -25,30 +29,47 @@ public class GitHubLinkHandler implements LinkHandler {
 
     @Override
     public void handle(List<Long> chatIds, LinkData linkData) {
-        String path = linkData.getUrl().getPath();
-        if (path == null) return;
-        String[] parts = path.split("/");
+        String[] pathParts = parsePath(linkData.getUrl().getPath());
+        if (pathParts == null) return;
 
-        if (parts.length >= 3) {
-            String owner = parts[1];
-            String repo = parts[2];
+        String owner = pathParts[0];
+        String repo = pathParts[1];
 
-            gitHubClient.fetchUpdate(owner, repo).ifPresent(response -> {
-                if (response.updatedAt().isAfter(linkData.getLastUpdate())) {
-                    log.atInfo()
-                            .addKeyValue("repo", repo)
-                            .addKeyValue("chats_count", chatIds.size())
-                            .log("Update found in Github");
+        List<GitHubIssueResponse> newIssues = gitHubClient.fetchIssuesSince(owner, repo, linkData.getLastUpdate());
+        if (newIssues.isEmpty()) return;
 
-                    linkData.setLastUpdate(response.updatedAt());
+        OffsetDateTime lastUpdate = linkData.getLastUpdate();
+        OffsetDateTime maxUpdate = lastUpdate;
 
-                    botClient.sendUpdate(new LinkUpdate()
-                            .id(linkData.getId())
-                            .url(linkData.getUrl())
-                            .description("Обновление в репозитории " + repo)
-                            .tgChatIds(chatIds));
+        for (GitHubIssueResponse issue : newIssues) {
+            if (issue.updatedAt() != null && issue.updatedAt().isAfter(lastUpdate)) {
+                String type =
+                        (issue.htmlUrl() != null && issue.htmlUrl().contains("/pull/")) ? "Pull Request" : "Issue";
+
+                String description = messageFormatter.formatGitHubUpdate(issue, type);
+
+                sendUpdate(chatIds, linkData, description);
+
+                if (issue.updatedAt().isAfter(maxUpdate)) {
+                    maxUpdate = issue.updatedAt();
                 }
-            });
+            }
         }
+        linkData.setLastUpdate(maxUpdate);
+    }
+
+    private void sendUpdate(List<Long> chatIds, LinkData linkData, String description) {
+        messageSender.send(new LinkUpdate()
+                .id(linkData.getId())
+                .url(linkData.getUrl())
+                .description(description)
+                .tgChatIds(chatIds));
+    }
+
+    private String[] parsePath(String path) {
+        if (path == null) return null;
+        String[] parts = path.split("/");
+        if (parts.length < 3) return null;
+        return new String[] {parts[1], parts[2]};
     }
 }
