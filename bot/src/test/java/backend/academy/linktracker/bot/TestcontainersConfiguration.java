@@ -1,6 +1,5 @@
 package backend.academy.linktracker.bot;
 
-import com.redis.testcontainers.RedisContainer;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
@@ -23,8 +22,7 @@ class TestcontainersConfiguration {
     @Bean
     @ServiceConnection(name = "redis")
     GenericContainer<?> valkeyContainer() {
-        return new GenericContainer<>(DockerImageName.parse("valkey/valkey:8.0"))
-            .withExposedPorts(6379);
+        return new GenericContainer<>(DockerImageName.parse("valkey/valkey:8.0")).withExposedPorts(6379);
     }
 
     @Bean

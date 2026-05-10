@@ -14,8 +14,8 @@ public class JacksonConfig {
     @Primary
     public ObjectMapper objectMapper() {
         return JsonMapper.builder()
-            .addModule(new JavaTimeModule())
-            .findAndAddModules()
-            .build();
+                .addModule(new JavaTimeModule())
+                .findAndAddModules()
+                .build();
     }
 }

@@ -33,23 +33,22 @@ public class CacheConfig {
     @Primary
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.builder()
-            .enableUnsafeDefaultTyping()
-            .build();
+                .enableUnsafeDefaultTyping()
+                .build();
 
         RedisCacheConfiguration redisConfig = RedisCacheConfiguration.defaultCacheConfig()
-            .entryTtl(ttl)
-            .disableCachingNullValues()
-            .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer));
+                .entryTtl(ttl)
+                .disableCachingNullValues()
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer));
 
         RedisCacheManager redisCacheManager = RedisCacheManager.builder(connectionFactory)
-            .cacheDefaults(redisConfig)
-            .build();
+                .cacheDefaults(redisConfig)
+                .build();
 
         if (clientSideEnabled) {
             CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
-            caffeineCacheManager.setCaffeine(Caffeine.newBuilder()
-                .expireAfterWrite(ttl)
-                .maximumSize(clientSideMaxSize));
+            caffeineCacheManager.setCaffeine(
+                    Caffeine.newBuilder().expireAfterWrite(ttl).maximumSize(clientSideMaxSize));
 
             return new CompositeCacheManager(caffeineCacheManager, redisCacheManager);
         }

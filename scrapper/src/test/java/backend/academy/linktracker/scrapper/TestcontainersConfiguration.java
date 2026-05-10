@@ -104,7 +104,6 @@ public class TestcontainersConfiguration {
     @Bean
     @ServiceConnection(name = "redis")
     public GenericContainer<?> valkeyContainer() {
-        return new GenericContainer<>(DockerImageName.parse("valkey/valkey:8.0"))
-            .withExposedPorts(6379);
+        return new GenericContainer<>(DockerImageName.parse("valkey/valkey:8.0")).withExposedPorts(6379);
     }
 }

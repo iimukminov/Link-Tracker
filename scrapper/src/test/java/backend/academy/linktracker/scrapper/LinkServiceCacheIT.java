@@ -15,10 +15,10 @@ import backend.academy.linktracker.scrapper.dto.ListLinksResponse;
 import backend.academy.linktracker.scrapper.model.LinkData;
 import backend.academy.linktracker.scrapper.repository.ChatRepository;
 import backend.academy.linktracker.scrapper.repository.LinkRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -63,7 +63,7 @@ class LinkServiceCacheIT {
 
         when(chatRepository.existsById(eq(chat1))).thenReturn(true);
         when(linkRepository.findAllByChatId(eq(chat1), anyInt(), anyInt()))
-            .thenReturn(List.of(new LinkData(1L, TEST_URI, OffsetDateTime.now(), List.of(), List.of())));
+                .thenReturn(List.of(new LinkData(1L, TEST_URI, OffsetDateTime.now(), List.of(), List.of())));
 
         linkService.getLinks(chat1);
         linkService.getLinks(chat1);
@@ -81,7 +81,7 @@ class LinkServiceCacheIT {
         when(linkRepository.findAllByChatId(eq(chat2), anyInt(), anyInt())).thenReturn(List.of());
         when(linkRepository.isLinkedToChat(eq(chat2), eq(TEST_URI))).thenReturn(false);
         when(linkRepository.addLinkToChat(eq(chat2), eq(TEST_URI), anyList()))
-            .thenReturn(new LinkData(1L, TEST_URI, OffsetDateTime.now(), List.of(), List.of()));
+                .thenReturn(new LinkData(1L, TEST_URI, OffsetDateTime.now(), List.of(), List.of()));
 
         linkService.getLinks(chat2);
         linkService.getLinks(chat2);
