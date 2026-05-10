@@ -48,10 +48,9 @@ class StackOverflowLinkHandlerTest {
     private StackOverflowLinkHandler stackOverflowLinkHandler;
 
     @Test
-    @DisplayName("Должен обработать новые ответы и обновить время по lastActivityDate")
+    @DisplayName("Должен обработать новые ответы и вызвать сохранение в БД")
     void handle_shouldProcessAnswers() {
         URI url = URI.create("https://stackoverflow.com/questions/123");
-
         OffsetDateTime lastUpdateInDb = OffsetDateTime.now(ZoneOffset.UTC).minusDays(1);
         LinkData linkData = new LinkData(1L, url, lastUpdateInDb, List.of(), List.of());
 
@@ -76,7 +75,7 @@ class StackOverflowLinkHandlerTest {
     }
 
     @Test
-    @DisplayName("Должен обработать новые комментарии, используя creationDate (fallback)")
+    @DisplayName("Должен обработать новые комментарии и вызвать сохранение в БД")
     void handle_shouldProcessCommentsUsingCreationDate() {
         URI url = URI.create("https://stackoverflow.com/questions/123");
         OffsetDateTime lastUpdateInDb = OffsetDateTime.now(ZoneOffset.UTC).minusDays(1);
@@ -97,11 +96,13 @@ class StackOverflowLinkHandlerTest {
         stackOverflowLinkHandler.handle(List.of(1L), linkData);
 
         verify(messageFormatter).formatStackOverflowUpdate(eq(comment), any(), eq("Комментарий"), any());
+        verify(dbService).saveUpdates(anyList(), eq(linkData));
+
         assertThat(linkData.getLastUpdate().toEpochSecond()).isEqualTo(now);
     }
 
     @Test
-    @DisplayName("Не должен отправлять уведомление, если дата совпадает с базой")
+    @DisplayName("Не должен вызывать сохранение, если дата совпадает с базой")
     void handle_shouldNotSendUpdateWhenDateIsSame() {
         URI url = URI.create("https://stackoverflow.com/questions/123");
         OffsetDateTime lastUpdate =
@@ -119,6 +120,7 @@ class StackOverflowLinkHandlerTest {
 
         stackOverflowLinkHandler.handle(List.of(1L), linkData);
 
+        verify(dbService, never()).saveUpdates(anyList(), any());
         verify(messageSender, never()).send(any());
     }
 }

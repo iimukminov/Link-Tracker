@@ -8,7 +8,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -80,7 +79,7 @@ class LinkUpdateServiceTest {
     }
 
     @Test
-    @DisplayName("Должен корректно группировать ID чатов и уведомлять только подписчиков")
+    @DisplayName("Должен корректно группировать ID чатов и вызывать хэндлер")
     void update_shouldGroupChatIdsByUrlAndNotifyOnlySubscribers() {
         when(schedulerProperties.getForceCheckDelay()).thenReturn(Duration.ofMinutes(10));
         when(schedulerProperties.getBatchSize()).thenReturn(50);
@@ -104,7 +103,6 @@ class LinkUpdateServiceTest {
                         argThat(chatIds -> chatIds.size() == 2 && chatIds.containsAll(List.of(100L, 200L))),
                         eq(githubLink));
 
-        verify(linkRepository).updateLastUpdateTime(eq(1L), any());
         verify(linkRepository).updateLastCheckTime(eq(1L), any());
     }
 
@@ -141,9 +139,6 @@ class LinkUpdateServiceTest {
         linkUpdateService.updateLinks();
 
         verify(githubHandler).handle(anyList(), eq(goodLink));
-
-        verify(linkRepository).updateLastUpdateTime(eq(2L), any());
-        verify(linkRepository, never()).updateLastUpdateTime(eq(1L), any());
 
         verify(linkRepository, times(1)).updateLastCheckTime(eq(1L), any());
         verify(linkRepository, times(1)).updateLastCheckTime(eq(2L), any());
