@@ -26,6 +26,16 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    properties:
+      schema.registry.url: ${KAFKA_SCHEMA_REGISTRY_URL}
+    producer:
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+    consumer:
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        specific.avro.reader: true
 
 app:
   bot:
@@ -52,3 +62,14 @@ app:
   database:
     #SQL или ORM
     access-type: ORM
+
+  use-queue: true
+  kafka:
+    topic: ${KAFKA_TOPIC_LINK_UPDATES}
+    partitions: ${KAFKA_TOPIC_PARTITIONS:1}
+    replicas: ${KAFKA_TOPIC_REPLICAS:1}
+
+  use-outbox: true
+  outbox:
+    interval: 5000
+    batch-size: 100

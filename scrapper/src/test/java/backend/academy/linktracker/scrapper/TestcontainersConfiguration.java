@@ -11,6 +11,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.images.builder.ImageFromDockerfile;
+import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
@@ -46,6 +47,14 @@ public class TestcontainersConfiguration {
                 .withDatabaseName("scrapper")
                 .withUsername("postgres")
                 .withPassword("postgres");
+    }
+
+    @Bean
+    @ServiceConnection
+    public KafkaContainer kafkaContainer() {
+        return new KafkaContainer(DockerImageName.parse("apache/kafka:3.7.0"))
+                .withNetwork(NETWORK)
+                .withNetworkAliases("kafka");
     }
 
     @Bean

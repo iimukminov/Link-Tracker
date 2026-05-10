@@ -74,7 +74,6 @@ public class LinkUpdateService {
                     List<Long> chatIds = chatRepository.findAllByLinkId(linkData.getId());
                     if (!chatIds.isEmpty()) {
                         linkHandler.handle(chatIds, linkData);
-                        linkRepository.updateLastUpdateTime(linkData.getId(), linkData.getLastUpdate());
                     }
                     isHandled = true;
                     break;

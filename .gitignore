@@ -54,3 +54,4 @@ build/
 
 # Environment variables file
 .env
+/api-contracts/generated-sources/

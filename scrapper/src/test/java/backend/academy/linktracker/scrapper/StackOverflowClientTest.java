@@ -80,9 +80,10 @@ public class StackOverflowClientTest {
         Optional<StackOverflowResponse> responseOpt = stackOverflowClient.fetchNewAnswers(questionId, fromDate);
 
         assertThat(responseOpt).isPresent();
-        assertThat(responseOpt.get().items()).hasSize(1);
+        StackOverflowResponse response = responseOpt.orElseThrow();
+        assertThat(response.items()).hasSize(1);
 
-        StackOverflowResponse.Item item = responseOpt.get().items().getFirst();
+        StackOverflowResponse.Item item = response.items().getFirst();
         assertThat(item.id()).isEqualTo(987654L);
         assertThat(item.owner().displayName()).isEqualTo("Jon Skeet");
     }
@@ -128,7 +129,7 @@ public class StackOverflowClientTest {
         Optional<StackOverflowResponse> responseOpt = stackOverflowClient.fetchNewComments(questionId, fromDate);
 
         assertThat(responseOpt).isPresent();
-        assertThat(responseOpt.get().items().getFirst().id()).isEqualTo(111222L);
+        assertThat(responseOpt.orElseThrow().items().getFirst().id()).isEqualTo(111222L);
     }
 
     @Test
@@ -156,6 +157,6 @@ public class StackOverflowClientTest {
         Optional<StackOverflowResponse> responseOpt = stackOverflowClient.fetchQuestion(questionId);
 
         assertThat(responseOpt).isPresent();
-        assertThat(responseOpt.get().items().getFirst().title()).isEqualTo("Как работает Spring Boot?");
+        assertThat(responseOpt.orElseThrow().items().getFirst().title()).isEqualTo("Как работает Spring Boot?");
     }
 }

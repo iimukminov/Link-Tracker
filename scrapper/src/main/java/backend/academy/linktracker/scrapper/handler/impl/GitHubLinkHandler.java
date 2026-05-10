@@ -3,24 +3,31 @@ package backend.academy.linktracker.scrapper.handler.impl;
 import backend.academy.linktracker.bot.dto.LinkUpdate;
 import backend.academy.linktracker.scrapper.client.GitHubClient;
 import backend.academy.linktracker.scrapper.dto.GitHubIssueResponse;
-import backend.academy.linktracker.scrapper.handler.LinkHandler;
+import backend.academy.linktracker.scrapper.handler.AbstractLinkHandler;
 import backend.academy.linktracker.scrapper.model.LinkData;
+import backend.academy.linktracker.scrapper.service.LinkUpdateDbService;
 import backend.academy.linktracker.scrapper.service.UpdateMessageFormatter;
-import backend.academy.linktracker.scrapper.service.sender.MessageSender;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
-public class GitHubLinkHandler implements LinkHandler {
+public class GitHubLinkHandler extends AbstractLinkHandler {
 
     private final GitHubClient gitHubClient;
-    private final MessageSender messageSender;
     private final UpdateMessageFormatter messageFormatter;
+
+    public GitHubLinkHandler(
+            GitHubClient gitHubClient,
+            UpdateMessageFormatter messageFormatter,
+            LinkUpdateDbService linkUpdateDbService) {
+        super(linkUpdateDbService);
+        this.gitHubClient = gitHubClient;
+        this.messageFormatter = messageFormatter;
+    }
 
     @Override
     public boolean supports(String host) {
@@ -28,16 +35,17 @@ public class GitHubLinkHandler implements LinkHandler {
     }
 
     @Override
-    public void handle(List<Long> chatIds, LinkData linkData) {
+    protected List<LinkUpdate> fetchUpdates(List<Long> chatIds, LinkData linkData) {
         String[] pathParts = parsePath(linkData.getUrl().getPath());
-        if (pathParts == null) return;
+        if (pathParts == null) return List.of();
 
         String owner = pathParts[0];
         String repo = pathParts[1];
 
         List<GitHubIssueResponse> newIssues = gitHubClient.fetchIssuesSince(owner, repo, linkData.getLastUpdate());
-        if (newIssues.isEmpty()) return;
+        if (newIssues.isEmpty()) return List.of();
 
+        List<LinkUpdate> updates = new ArrayList<>();
         OffsetDateTime lastUpdate = linkData.getLastUpdate();
         OffsetDateTime maxUpdate = lastUpdate;
 
@@ -48,7 +56,11 @@ public class GitHubLinkHandler implements LinkHandler {
 
                 String description = messageFormatter.formatGitHubUpdate(issue, type);
 
-                sendUpdate(chatIds, linkData, description);
+                updates.add(new LinkUpdate()
+                        .id(linkData.getId())
+                        .url(linkData.getUrl())
+                        .description(description)
+                        .tgChatIds(chatIds));
 
                 if (issue.updatedAt().isAfter(maxUpdate)) {
                     maxUpdate = issue.updatedAt();
@@ -56,14 +68,8 @@ public class GitHubLinkHandler implements LinkHandler {
             }
         }
         linkData.setLastUpdate(maxUpdate);
-    }
 
-    private void sendUpdate(List<Long> chatIds, LinkData linkData, String description) {
-        messageSender.send(new LinkUpdate()
-                .id(linkData.getId())
-                .url(linkData.getUrl())
-                .description(description)
-                .tgChatIds(chatIds));
+        return updates;
     }
 
     private String[] parsePath(String path) {

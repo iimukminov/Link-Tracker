@@ -3,27 +3,34 @@ package backend.academy.linktracker.scrapper.handler.impl;
 import backend.academy.linktracker.bot.dto.LinkUpdate;
 import backend.academy.linktracker.scrapper.client.StackOverflowClient;
 import backend.academy.linktracker.scrapper.dto.StackOverflowResponse;
-import backend.academy.linktracker.scrapper.handler.LinkHandler;
+import backend.academy.linktracker.scrapper.handler.AbstractLinkHandler;
 import backend.academy.linktracker.scrapper.model.LinkData;
+import backend.academy.linktracker.scrapper.service.LinkUpdateDbService;
 import backend.academy.linktracker.scrapper.service.UpdateMessageFormatter;
-import backend.academy.linktracker.scrapper.service.sender.MessageSender;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
-public class StackOverflowLinkHandler implements LinkHandler {
+public class StackOverflowLinkHandler extends AbstractLinkHandler {
 
     private final StackOverflowClient stackOverflowClient;
-    private final MessageSender messageSender;
     private final UpdateMessageFormatter messageFormatter;
+
+    public StackOverflowLinkHandler(
+            StackOverflowClient stackOverflowClient,
+            UpdateMessageFormatter messageFormatter,
+            LinkUpdateDbService linkUpdateDbService) {
+        super(linkUpdateDbService);
+        this.stackOverflowClient = stackOverflowClient;
+        this.messageFormatter = messageFormatter;
+    }
 
     @Override
     public boolean supports(String host) {
@@ -31,18 +38,20 @@ public class StackOverflowLinkHandler implements LinkHandler {
     }
 
     @Override
-    public void handle(List<Long> chatIds, LinkData linkData) {
+    protected List<LinkUpdate> fetchUpdates(List<Long> chatIds, LinkData linkData) {
         Long questionId = extractQuestionId(linkData.getUrl().getPath());
-        if (questionId == null) return;
+        if (questionId == null) return List.of();
 
         String title = stackOverflowClient
                 .fetchQuestion(questionId)
                 .map(resp -> resp.items().getFirst().title())
                 .orElse("Без заголовка");
 
+        List<LinkUpdate> updates = new ArrayList<>();
         OffsetDateTime maxUpdate = linkData.getLastUpdate();
 
         maxUpdate = processItems(
+                updates,
                 chatIds,
                 linkData,
                 maxUpdate,
@@ -51,6 +60,7 @@ public class StackOverflowLinkHandler implements LinkHandler {
                 stackOverflowClient.fetchNewAnswers(questionId, linkData.getLastUpdate()));
 
         maxUpdate = processItems(
+                updates,
                 chatIds,
                 linkData,
                 maxUpdate,
@@ -59,9 +69,11 @@ public class StackOverflowLinkHandler implements LinkHandler {
                 stackOverflowClient.fetchNewComments(questionId, linkData.getLastUpdate()));
 
         linkData.setLastUpdate(maxUpdate);
+        return updates;
     }
 
     private OffsetDateTime processItems(
+            List<LinkUpdate> updates,
             List<Long> chatIds,
             LinkData linkData,
             OffsetDateTime currentMax,
@@ -84,7 +96,7 @@ public class StackOverflowLinkHandler implements LinkHandler {
             if (itemDate.isAfter(lastUpdate)) {
                 String description = messageFormatter.formatStackOverflowUpdate(item, title, type, itemDate);
 
-                messageSender.send(new LinkUpdate()
+                updates.add(new LinkUpdate()
                         .id(linkData.getId())
                         .url(linkData.getUrl())
                         .description(description)
