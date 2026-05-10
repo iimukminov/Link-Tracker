@@ -30,9 +30,13 @@ app:
   kafka:
     topic: ${KAFKA_TOPIC_LINK_UPDATES}
     dlqTopic: ${KAFKA_TOPIC_LINK_UPDATES}_dlq
+    partitions: ${KAFKA_TOPIC_PARTITIONS:1}
+    replicas: ${KAFKA_TOPIC_REPLICAS:1}
     retry:
       max-attempts: 3
       backoff-interval-ms: 1000
+
+  use-queue: true
 logging:
   pattern:
     console: "%clr(%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}){faint} %clr(%5p) %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m %clr(%kvp){yellow}%n%wEx"

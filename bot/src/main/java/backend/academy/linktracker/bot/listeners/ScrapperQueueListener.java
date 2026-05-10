@@ -3,14 +3,17 @@ package backend.academy.linktracker.bot.listeners;
 import backend.academy.linktracker.avro.LinkUpdateAvro;
 import backend.academy.linktracker.bot.dto.LinkUpdate;
 import backend.academy.linktracker.bot.service.BotUpdateService;
+import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "app", name = "use-queue", havingValue = "true")
 public class ScrapperQueueListener {
 
     private final BotUpdateService botUpdateService;
@@ -28,7 +31,7 @@ public class ScrapperQueueListener {
                     .id(update.getId())
                     .url(java.net.URI.create(update.getUrl()))
                     .description(update.getDescription())
-                    .tgChatIds(new java.util.ArrayList<>(update.getTgChatIds()));
+                    .tgChatIds(new ArrayList<>(update.getTgChatIds()));
 
             botUpdateService.processUpdate(dto);
         } catch (Exception e) {

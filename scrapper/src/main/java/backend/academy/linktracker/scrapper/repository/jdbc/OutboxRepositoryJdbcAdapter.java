@@ -46,4 +46,11 @@ public class OutboxRepositoryJdbcAdapter implements OutboxRepository {
     public void updateStatus(Long id, OutboxEvent.OutboxStatus status) {
         jdbcTemplate.update("UPDATE outbox_event SET status = ? WHERE id = ?", status.name(), id);
     }
+
+    @Override
+    public void incrementRetryCount(Long id) {
+        jdbcTemplate.update(
+                "UPDATE outbox_event SET retry_count = retry_count + 1, last_retry_at = CURRENT_TIMESTAMP WHERE id = ?",
+                id);
+    }
 }

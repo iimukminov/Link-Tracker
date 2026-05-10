@@ -11,4 +11,6 @@ public interface OutboxRepository {
     void deleteById(Long id);
 
     void updateStatus(Long id, OutboxEvent.OutboxStatus status);
+
+    void incrementRetryCount(Long id);
 }

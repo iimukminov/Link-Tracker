@@ -36,4 +36,9 @@ public class OutboxRepositoryJpaAdapter implements OutboxRepository {
     public void updateStatus(Long id, OutboxEvent.OutboxStatus status) {
         jpaRepository.findById(id).ifPresent(e -> e.setStatus(status));
     }
+
+    @Override
+    public void incrementRetryCount(Long id) {
+        jpaRepository.incrementRetryCount(id);
+    }
 }

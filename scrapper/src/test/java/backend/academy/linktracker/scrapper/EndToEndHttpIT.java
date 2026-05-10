@@ -14,7 +14,7 @@ import org.testcontainers.containers.GenericContainer;
 @SpringBootTest(properties = "app.scheduler.enable=false")
 @Import(TestcontainersConfiguration.class)
 @ActiveProfiles("e2e")
-public class EndToEndIT {
+public class EndToEndHttpIT {
 
     @Autowired
     @Qualifier("scrapperContainer")

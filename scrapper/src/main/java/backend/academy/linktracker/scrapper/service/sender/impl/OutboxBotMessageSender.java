@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ConditionalOnProperty(prefix = "app", name = "use-outbox", havingValue = "true")
 public class OutboxBotMessageSender implements MessageSender {
     private final OutboxRepository outboxRepository;
-    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+    private final ObjectMapper objectMapper;
     private final KafkaProperties kafkaProperties;
 
     @Override

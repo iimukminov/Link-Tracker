@@ -23,7 +23,7 @@ public class OutboxScheduler {
     private final OutboxRepository outboxRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final OutboxProperties outboxProperties;
-    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+    private final ObjectMapper objectMapper;
 
     @Scheduled(fixedDelayString = "${app.outbox.interval}")
     public void processOutbox() {
@@ -51,6 +51,8 @@ public class OutboxScheduler {
                                         .addKeyValue("topic", event.getTopic())
                                         .log();
                             } else {
+                                outboxRepository.incrementRetryCount(event.getId());
+
                                 log.atError()
                                         .setMessage("Failed to send outbox message")
                                         .addKeyValue("eventId", event.getId())

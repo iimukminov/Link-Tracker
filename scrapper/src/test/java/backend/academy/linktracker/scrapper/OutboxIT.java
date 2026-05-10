@@ -84,8 +84,8 @@ public class OutboxIT {
     }
 
     @Test
-    @DisplayName("Сценарий 2: Падение сети (Кафки) оставляет статус PENDING")
-    void shouldKeepStatusPendingWhenKafkaIsDown() {
+    @DisplayName("Сценарий 2: Падение сети (Кафки) оставляет статус PENDING и увеличивает retry_count")
+    void shouldKeepStatusPendingAndIncrementRetryCountWhenKafkaIsDown() {
         LinkUpdate update = new LinkUpdate()
                 .id(202L)
                 .url(URI.create("https://github.com/fail"))
@@ -101,10 +101,18 @@ public class OutboxIT {
         assertThat(pendingEvents).hasSize(1);
         Long eventId = pendingEvents.get(0).getId();
 
+        Integer initialRetryCount = jdbcTemplate.queryForObject(
+                "SELECT retry_count FROM outbox_event WHERE id = ?", Integer.class, eventId);
+        assertThat(initialRetryCount).isEqualTo(0);
+
         outboxScheduler.processOutbox();
 
         String status =
                 jdbcTemplate.queryForObject("SELECT status FROM outbox_event WHERE id = ?", String.class, eventId);
         assertThat(status).isEqualTo("PENDING");
+
+        Integer retryCountAfterFail = jdbcTemplate.queryForObject(
+                "SELECT retry_count FROM outbox_event WHERE id = ?", Integer.class, eventId);
+        assertThat(retryCountAfterFail).isEqualTo(1);
     }
 }

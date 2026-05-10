@@ -35,7 +35,6 @@ public class OutboxEvent {
 
     public enum OutboxStatus {
         PENDING,
-        SENT,
-        FAILED
+        SENT
     }
 }
