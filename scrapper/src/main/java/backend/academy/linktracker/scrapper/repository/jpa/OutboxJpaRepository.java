@@ -14,7 +14,7 @@ public interface OutboxJpaRepository extends JpaRepository<OutboxEvent, Long> {
     @Modifying
     @Query(
             value =
-                    "UPDATE outbox_event e SET e.retryCount = e.retryCount + 1, e.lastRetryAt = CURRENT_TIMESTAMP WHERE e.id = :id",
+                    "UPDATE outbox_event SET retry_count = retry_count + 1, last_retry_at = CURRENT_TIMESTAMP WHERE id = :id",
             nativeQuery = true)
     void incrementRetryCount(@Param("id") Long id);
 }

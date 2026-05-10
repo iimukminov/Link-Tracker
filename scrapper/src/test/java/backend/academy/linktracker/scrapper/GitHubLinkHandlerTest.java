@@ -13,6 +13,7 @@ import backend.academy.linktracker.scrapper.client.GitHubClient;
 import backend.academy.linktracker.scrapper.dto.GitHubIssueResponse;
 import backend.academy.linktracker.scrapper.handler.impl.GitHubLinkHandler;
 import backend.academy.linktracker.scrapper.model.LinkData;
+import backend.academy.linktracker.scrapper.service.LinkUpdateDbService;
 import backend.academy.linktracker.scrapper.service.UpdateMessageFormatter;
 import backend.academy.linktracker.scrapper.service.sender.MessageSender;
 import java.net.URI;
@@ -39,6 +40,9 @@ class GitHubLinkHandlerTest {
 
     @Mock
     private UpdateMessageFormatter messageFormatter;
+
+    @Mock
+    private LinkUpdateDbService dbService;
 
     @InjectMocks
     private GitHubLinkHandler gitHubLinkHandler;
