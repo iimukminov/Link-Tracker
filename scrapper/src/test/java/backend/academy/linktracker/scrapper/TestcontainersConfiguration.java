@@ -100,4 +100,11 @@ public class TestcontainersConfiguration {
                 .withEnv("TELEGRAM_BOT_TOKEN", "123:mock")
                 .dependsOn(scrapper);
     }
+
+    @Bean
+    @ServiceConnection(name = "redis")
+    public GenericContainer<?> valkeyContainer() {
+        return new GenericContainer<>(DockerImageName.parse("valkey/valkey:8.0"))
+            .withExposedPorts(6379);
+    }
 }

@@ -48,7 +48,11 @@ services:
     networks:
       - backend
     depends_on:
-      redis:
+      valkey-node-1:
+        condition: service_healthy
+      valkey-node-2:
+        condition: service_healthy
+      valkey-node-3:
         condition: service_healthy
       kafka-1:
         condition: service_healthy
@@ -65,6 +69,8 @@ services:
     build:
       dockerfile: scrapper/Dockerfile
     container_name: link_tracker_scrapper
+    ports:
+      - "8081:8081"
     volumes:
       - ./scrapper/config/messages.yml:/app/config/messages.yml
     env_file:
@@ -72,12 +78,16 @@ services:
     networks:
       - backend
     depends_on:
+      valkey-node-1:
+        condition: service_healthy
+      valkey-node-2:
+        condition: service_healthy
+      valkey-node-3:
+        condition: service_healthy
       postgresql:
         condition: service_healthy
       liquibase-migrations:
         condition: service_completed_successfully
-      redis:
-        condition: service_healthy
       kafka-1:
         condition: service_healthy
       kafka-2:
@@ -180,18 +190,68 @@ services:
     networks:
       - backend
 
-  redis:
-    image: redis:7-alpine
-    container_name: link_tracker_redis
+  valkey-node-1:
+    image: valkey/valkey:8.0-alpine
+    container_name: ${VALKEY_HOST_1}
+    command: ["valkey-server", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes", "--requirepass", "${VALKEY_PASSWORD}", "--masterauth", "${VALKEY_PASSWORD}"]
     ports:
-      - "6379:6379"
+      - "${VALKEY_PORT_1}:6379"
+    volumes:
+      - valkey-1-data:/data
     networks:
       - backend
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD", "valkey-cli", "-a", "${VALKEY_PASSWORD}", "ping"]
       interval: 5s
-      timeout: 5s
+      timeout: 3s
       retries: 5
+
+  valkey-node-2:
+    image: valkey/valkey:8.0-alpine
+    container_name: ${VALKEY_HOST_2}
+    command: ["valkey-server", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes", "--requirepass", "${VALKEY_PASSWORD}", "--masterauth", "${VALKEY_PASSWORD}"]
+    ports:
+      - "${VALKEY_PORT_2}:6379"
+    volumes:
+      - valkey-2-data:/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "valkey-cli", "-a", "${VALKEY_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  valkey-node-3:
+    image: valkey/valkey:8.0-alpine
+    container_name: ${VALKEY_HOST_3}
+    command: ["valkey-server", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes", "--requirepass", "${VALKEY_PASSWORD}", "--masterauth", "${VALKEY_PASSWORD}"]
+    ports:
+      - "${VALKEY_PORT_3}:6379"
+    volumes:
+      - valkey-3-data:/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "valkey-cli", "-a", "${VALKEY_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # СЕРВИС-ИНИЦИАТОР: Он просто один раз соединит ноды в кластер и выключится
+  valkey-cluster-init:
+    image: valkey/valkey:8.0-alpine
+    depends_on:
+      valkey-node-1:
+        condition: service_healthy
+      valkey-node-2:
+        condition: service_healthy
+      valkey-node-3:
+        condition: service_healthy
+    networks:
+      - backend
+    command: >
+      sh -c "valkey-cli --cluster create ${VALKEY_NODES_LIST} --cluster-replicas 0 -a ${VALKEY_PASSWORD} --cluster-yes"
 
   schema-registry:
     image: confluentinc/cp-schema-registry:7.8.0
@@ -222,6 +282,9 @@ volumes:
   kafka-1-data:
   kafka-2-data:
   kafka-3-data:
+  valkey-1-data:
+  valkey-2-data:
+  valkey-3-data:
 
 networks:
   backend:

@@ -14,6 +14,8 @@ import backend.academy.linktracker.scrapper.repository.LinkRepository;
 import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,7 @@ public class LinkService {
     private final LinkProperties linkProperties;
     private final ScrapperMessages scrapperMessages;
 
+    @Cacheable(value = "links", key = "#p0")
     @Transactional(readOnly = true)
     public ListLinksResponse getLinks(Long tgChatId) {
         if (!chatRepository.existsById(tgChatId)) {
@@ -45,6 +48,7 @@ public class LinkService {
         return new ListLinksResponse().links(links).size(links.size());
     }
 
+    @CacheEvict(value = "links", key = "#p0")
     @Transactional
     public LinkResponse addLink(Long tgChatId, AddLinkRequest request) {
         if (!chatRepository.existsById(tgChatId)) {
@@ -65,6 +69,7 @@ public class LinkService {
                 .filters(List.of());
     }
 
+    @CacheEvict(value = "links", key = "#p0")
     @Transactional
     public LinkResponse removeLink(Long tgChatId, URI link) {
         if (!chatRepository.existsById(tgChatId)) {

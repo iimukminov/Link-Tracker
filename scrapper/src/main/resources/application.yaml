@@ -26,6 +26,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
     properties:
@@ -37,9 +38,21 @@ spring:
       properties:
         specific.avro.reader: true
 
+  data:
+    redis:
+      password: ${VALKEY_PASSWORD}
+      cluster:
+        nodes: ${SCRAPPER_VALKEY_CLUSTER_NODES}
+      lettuce:
+        cluster:
+          refresh:
+            adaptive: true
+            period: 60s
+
 app:
   bot:
     base-url: ${BOT_URL:http://localhost:8080}
+
   scheduler:
     enable: true
     interval: 10s
@@ -49,6 +62,15 @@ app:
 
   links:
     limit: 100
+
+  valkey:
+    cache:
+      client-side:
+        enabled: ${SCRAPPER_VALKEY_CLIENT_SIDE_CACHE_ENABLED:true}
+        max-size: 10000
+
+  cache:
+    ttl: ${VALKEY_TTL:10m}
 
   stackoverflow:
     base-url: https://api.stackexchange.com/2.2
