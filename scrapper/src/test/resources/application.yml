@@ -5,9 +5,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-  data:
-    redis:
-      cluster: null
 
 app:
   github:

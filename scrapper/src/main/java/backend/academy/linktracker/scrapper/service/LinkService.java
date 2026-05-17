@@ -28,7 +28,7 @@ public class LinkService {
     private final LinkProperties linkProperties;
     private final ScrapperMessages scrapperMessages;
 
-    @Cacheable(value = "links", key = "#p0")
+    @Cacheable(value = "links", key = "#tgChatId")
     @Transactional(readOnly = true)
     public ListLinksResponse getLinks(Long tgChatId) {
         if (!chatRepository.existsById(tgChatId)) {
@@ -48,7 +48,7 @@ public class LinkService {
         return new ListLinksResponse().links(links).size(links.size());
     }
 
-    @CacheEvict(value = "links", key = "#p0")
+    @CacheEvict(value = "links", key = "#tgChatId")
     @Transactional
     public LinkResponse addLink(Long tgChatId, AddLinkRequest request) {
         if (!chatRepository.existsById(tgChatId)) {
@@ -69,7 +69,7 @@ public class LinkService {
                 .filters(List.of());
     }
 
-    @CacheEvict(value = "links", key = "#p0")
+    @CacheEvict(value = "links", key = "#tgChatId")
     @Transactional
     public LinkResponse removeLink(Long tgChatId, URI link) {
         if (!chatRepository.existsById(tgChatId)) {

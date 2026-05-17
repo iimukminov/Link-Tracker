@@ -1,7 +1,8 @@
-package backend.academy.linktracker.scrapper;
+package backend.academy.linktracker.scrapper.sender;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import backend.academy.linktracker.scrapper.TestcontainersConfiguration;
 import backend.academy.linktracker.scrapper.service.sender.MessageSender;
 import backend.academy.linktracker.scrapper.service.sender.impl.HttpBotMessageSender;
 import org.junit.jupiter.api.DisplayName;

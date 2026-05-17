@@ -1,8 +1,9 @@
-package backend.academy.linktracker.scrapper;
+package backend.academy.linktracker.scrapper.e2e;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import backend.academy.linktracker.scrapper.TestcontainersConfiguration;
 import java.time.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;

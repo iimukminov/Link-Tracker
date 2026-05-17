@@ -63,14 +63,12 @@ app:
   links:
     limit: 100
 
-  valkey:
-    cache:
-      client-side:
-        enabled: ${SCRAPPER_VALKEY_CLIENT_SIDE_CACHE_ENABLED:true}
-        max-size: 10000
-
   cache:
-    ttl: ${VALKEY_TTL:10m}
+    l1-ttl: ${VALKEY_L1_TTL:1m}
+    l2-ttl: ${VALKEY_L2_TTL:10m}
+    client-side:
+      enabled: ${SCRAPPER_VALKEY_CLIENT_SIDE_CACHE_ENABLED:true}
+      max-size: 10000
 
   stackoverflow:
     base-url: https://api.stackexchange.com/2.2

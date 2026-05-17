@@ -1,8 +1,9 @@
-package backend.academy.linktracker.scrapper;
+package backend.academy.linktracker.scrapper.sender;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import backend.academy.linktracker.bot.dto.LinkUpdate;
+import backend.academy.linktracker.scrapper.TestcontainersConfiguration;
 import backend.academy.linktracker.scrapper.service.sender.MessageSender;
 import java.net.URI;
 import java.time.Duration;

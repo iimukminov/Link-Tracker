@@ -1,7 +1,8 @@
-package backend.academy.linktracker.scrapper;
+package backend.academy.linktracker.scrapper.repository;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import backend.academy.linktracker.scrapper.TestcontainersConfiguration;
 import backend.academy.linktracker.scrapper.dto.AddLinkRequest;
 import backend.academy.linktracker.scrapper.exceptions.ChatNotFoundException;
 import backend.academy.linktracker.scrapper.exceptions.LinkAlreadyTrackedException;

@@ -48,12 +48,8 @@ services:
     networks:
       - backend
     depends_on:
-      valkey-node-1:
-        condition: service_healthy
-      valkey-node-2:
-        condition: service_healthy
-      valkey-node-3:
-        condition: service_healthy
+      valkey-cluster-init:
+        condition: service_completed_successfully
       kafka-1:
         condition: service_healthy
       kafka-2:
@@ -78,12 +74,8 @@ services:
     networks:
       - backend
     depends_on:
-      valkey-node-1:
-        condition: service_healthy
-      valkey-node-2:
-        condition: service_healthy
-      valkey-node-3:
-        condition: service_healthy
+      valkey-cluster-init:
+        condition: service_completed_successfully
       postgresql:
         condition: service_healthy
       liquibase-migrations:
@@ -193,7 +185,7 @@ services:
   valkey-node-1:
     image: valkey/valkey:8.0-alpine
     container_name: ${VALKEY_HOST_1}
-    command: ["valkey-server", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes", "--requirepass", "${VALKEY_PASSWORD}", "--masterauth", "${VALKEY_PASSWORD}"]
+    command: ["valkey-server", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes", "--requirepass", "${VALKEY_PASSWORD}", "--masterauth", "${VALKEY_PASSWORD}", "--notify-keyspace-events", "AKE", "--cluster-announce-ip", "${VALKEY_HOST_1}"]
     ports:
       - "${VALKEY_PORT_1}:6379"
     volumes:
@@ -209,7 +201,7 @@ services:
   valkey-node-2:
     image: valkey/valkey:8.0-alpine
     container_name: ${VALKEY_HOST_2}
-    command: ["valkey-server", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes", "--requirepass", "${VALKEY_PASSWORD}", "--masterauth", "${VALKEY_PASSWORD}"]
+    command: ["valkey-server", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes", "--requirepass", "${VALKEY_PASSWORD}", "--masterauth", "${VALKEY_PASSWORD}", "--notify-keyspace-events", "AKE", "--cluster-announce-ip", "${VALKEY_HOST_2}"]
     ports:
       - "${VALKEY_PORT_2}:6379"
     volumes:
@@ -225,7 +217,7 @@ services:
   valkey-node-3:
     image: valkey/valkey:8.0-alpine
     container_name: ${VALKEY_HOST_3}
-    command: ["valkey-server", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes", "--requirepass", "${VALKEY_PASSWORD}", "--masterauth", "${VALKEY_PASSWORD}"]
+    command: ["valkey-server", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes", "--requirepass", "${VALKEY_PASSWORD}", "--masterauth", "${VALKEY_PASSWORD}", "--notify-keyspace-events", "AKE", "--cluster-announce-ip", "${VALKEY_HOST_3}"]
     ports:
       - "${VALKEY_PORT_3}:6379"
     volumes:
@@ -238,7 +230,6 @@ services:
       timeout: 3s
       retries: 5
 
-  # СЕРВИС-ИНИЦИАТОР: Он просто один раз соединит ноды в кластер и выключится
   valkey-cluster-init:
     image: valkey/valkey:8.0-alpine
     depends_on:
@@ -251,7 +242,7 @@ services:
     networks:
       - backend
     command: >
-      sh -c "valkey-cli --cluster create ${VALKEY_NODES_LIST} --cluster-replicas 0 -a ${VALKEY_PASSWORD} --cluster-yes"
+      sh -c "valkey-cli --cluster create ${VALKEY_NODES_LIST} --cluster-replicas 0 -a ${VALKEY_PASSWORD} --cluster-yes || echo 'Cluster already exists!'"
 
   schema-registry:
     image: confluentinc/cp-schema-registry:7.8.0

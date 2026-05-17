@@ -1,8 +1,7 @@
-package backend.academy.linktracker.scrapper;
+package backend.academy.linktracker.scrapper.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import backend.academy.linktracker.scrapper.util.LinkUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

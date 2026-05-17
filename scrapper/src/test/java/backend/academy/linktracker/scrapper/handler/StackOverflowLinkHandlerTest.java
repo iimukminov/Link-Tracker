@@ -1,4 +1,4 @@
-package backend.academy.linktracker.scrapper;
+package backend.academy.linktracker.scrapper.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;

@@ -1,4 +1,4 @@
-package backend.academy.linktracker.scrapper;
+package backend.academy.linktracker.scrapper.service;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -18,7 +18,6 @@ import backend.academy.linktracker.scrapper.properties.SchedulerProperties;
 import backend.academy.linktracker.scrapper.properties.ScrapperMessages;
 import backend.academy.linktracker.scrapper.repository.ChatRepository;
 import backend.academy.linktracker.scrapper.repository.LinkRepository;
-import backend.academy.linktracker.scrapper.service.LinkUpdateService;
 import backend.academy.linktracker.scrapper.service.sender.MessageSender;
 import java.net.URI;
 import java.time.Duration;

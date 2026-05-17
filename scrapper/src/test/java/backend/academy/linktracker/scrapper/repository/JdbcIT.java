@@ -1,4 +1,4 @@
-package backend.academy.linktracker.scrapper;
+package backend.academy.linktracker.scrapper.repository;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -11,19 +11,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.TestPropertySource;
 
-@TestPropertySource(properties = "app.database.access-type=ORM")
-public class JpaIT extends AbstractDatabaseIT {
+@TestPropertySource(properties = "app.database.access-type=SQL")
+public class JdbcIT extends AbstractDatabaseIT {
 
     @Autowired
     private ApplicationContext context;
 
     @Test
-    void shouldLoadJpaBeansAndNotJdbcBeans() {
-        assertNotNull(context.getBean(LinkRepositoryJpaAdapter.class), "ORM репозиторий должен быть загружен");
+    void shouldLoadJdbcBeansAndNotJpaBeans() {
+        assertNotNull(context.getBean(LinkRepositoryJdbcAdapter.class), "SQL репозиторий должен быть загружен");
 
         assertThrows(
                 NoSuchBeanDefinitionException.class,
-                () -> context.getBean(LinkRepositoryJdbcAdapter.class),
-                "SQL репозиторий НЕ должен быть загружен при access-type=ORM");
+                () -> context.getBean(LinkRepositoryJpaAdapter.class),
+                "ORM репозиторий НЕ должен быть загружен при access-type=SQL");
     }
 }
