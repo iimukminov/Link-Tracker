@@ -40,7 +40,11 @@ public class FallbackIT {
 
         HttpBotMessageSender sender = new HttpBotMessageSender(mockBotClient, templateProvider, propsProvider);
 
-        LinkUpdate update = new LinkUpdate().id(1L).url(URI.create("http://test")).description("desc").tgChatIds(List.of(123L));
+        LinkUpdate update = new LinkUpdate()
+                .id(1L)
+                .url(URI.create("http://test"))
+                .description("desc")
+                .tgChatIds(List.of(123L));
 
         sender.send(update);
 

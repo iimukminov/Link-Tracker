@@ -27,17 +27,17 @@ public class HttpBotMessageSender implements MessageSender {
             log.atWarn()
                     .addKeyValue("updateId", update.getId())
                     .log("Circuit Breaker is OPEN for BotClient. Routing update to Fallback (Kafka)...");
-            fallbackSend(update, e);
+            fallbackSend(update);
         } catch (Exception e) {
             log.atError()
                     .addKeyValue("updateId", update.getId())
                     .setCause(e)
                     .log("HttpBotMessageSender failed after retries. Routing update to Fallback (Kafka)...");
-            fallbackSend(update, e);
+            fallbackSend(update);
         }
     }
 
-    private void fallbackSend(LinkUpdate update, Throwable t) {
+    private void fallbackSend(LinkUpdate update) {
         KafkaTemplate<String, Object> kafkaTemplate = kafkaTemplateProvider.getIfAvailable();
         KafkaProperties kafkaProperties = kafkaPropertiesProvider.getIfAvailable();
 

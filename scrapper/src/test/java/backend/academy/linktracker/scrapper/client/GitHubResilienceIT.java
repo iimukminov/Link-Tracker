@@ -73,13 +73,9 @@ public class GitHubResilienceIT {
     @Test
     @DisplayName("TC-1.1: Превышение времени ожидания. Запрос падает по таймауту")
     void shouldFailOnTimeout() {
-        stubFor(get(anyUrl()).willReturn(aResponse()
-            .withStatus(200)
-            .withFixedDelay(15000)));
+        stubFor(get(anyUrl()).willReturn(aResponse().withStatus(200).withFixedDelay(15000)));
 
-        assertThrows(Exception.class, () ->
-            gitHubClient.fetchIssuesSince("owner", "repo", OffsetDateTime.now())
-        );
+        assertThrows(Exception.class, () -> gitHubClient.fetchIssuesSince("owner", "repo", OffsetDateTime.now()));
     }
 
     @Test
@@ -137,10 +133,7 @@ public class GitHubResilienceIT {
             gitHubClient.fetchIssuesSince("owner", "repo", OffsetDateTime.now());
         }
 
-        Assertions.assertEquals(
-            CircuitBreaker.State.CLOSED,
-            cb.getState()
-        );
+        Assertions.assertEquals(CircuitBreaker.State.CLOSED, cb.getState());
     }
 
     @Test
@@ -156,12 +149,10 @@ public class GitHubResilienceIT {
         for (int i = 0; i < 3; i++) {
             try {
                 gitHubClient.fetchIssuesSince("owner", "repo", OffsetDateTime.now());
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
-        Assertions.assertEquals(
-            CircuitBreaker.State.OPEN,
-            cb.getState()
-        );
+        Assertions.assertEquals(CircuitBreaker.State.OPEN, cb.getState());
     }
 }
