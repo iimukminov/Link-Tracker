@@ -32,6 +32,7 @@ spring:
 app:
   scrapper:
     base-url: ${SCRAPPER_URL:http://localhost:8081}
+    timeout: 10s
   telegram:
     url: https://api.telegram.org/bot
     token: ${TELEGRAM_BOT_TOKEN} # Use env variable. DO NOT KEEP TOKEN HERE
@@ -47,6 +48,47 @@ app:
       backoff-interval-ms: 1000
 
   use-queue: true
+
+  rate-limit:
+    capacity: 20
+    duration: 1m
 logging:
   pattern:
     console: "%clr(%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}){faint} %clr(%5p) %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m %clr(%kvp){yellow}%n%wEx"
+
+resilience4j:
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 2s
+        retry-exceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - org.springframework.web.client.ResourceAccessException
+          - java.net.SocketTimeoutException
+          - java.io.IOException
+        ignore-exceptions:
+          - org.springframework.web.client.HttpClientErrorException
+    instances:
+      scrapper:
+        base-config: default
+
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        record-exceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - org.springframework.web.client.ResourceAccessException
+          - java.net.SocketTimeoutException
+          - java.io.IOException
+        ignore-exceptions:
+          - org.springframework.web.client.HttpClientErrorException
+    instances:
+      scrapper:
+        base-config: default

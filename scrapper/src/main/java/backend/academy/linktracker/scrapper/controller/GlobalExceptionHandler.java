@@ -54,6 +54,13 @@ public class GlobalExceptionHandler {
         return createErrorResponse(ex, messages.getErrors().getChatAlreadyRegistered(), "409");
     }
 
+    @ExceptionHandler(RateLimitExceededException.class)
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+    public ApiErrorResponse handleRateLimitExceeded(RateLimitExceededException ex) {
+        log.atWarn().log("Rate limit exceeded: {}", ex.getMessage());
+        return createErrorResponse(ex, messages.getErrors().getRateLimitExceeded(), "429");
+    }
+
     private ApiErrorResponse createErrorResponse(Exception ex, String description, String code) {
         List<String> stackTrace = Arrays.stream(ex.getStackTrace())
                 .map(StackTraceElement::toString)

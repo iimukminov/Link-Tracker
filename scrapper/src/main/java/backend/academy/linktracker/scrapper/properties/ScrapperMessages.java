@@ -43,6 +43,10 @@ public class ScrapperMessages {
         @NotNull
         @NotEmpty
         private String processingError;
+
+        @NotNull
+        @NotEmpty
+        private String rateLimitExceeded;
     }
 
     @Getter

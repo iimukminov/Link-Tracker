@@ -119,4 +119,8 @@ public class BotMessages {
     @NotNull
     @NotEmpty
     private String badRequest;
+
+    @NotNull
+    @NotEmpty
+    private String rateLimitExceeded;
 }

@@ -52,6 +52,7 @@ spring:
 app:
   bot:
     base-url: ${BOT_URL:http://localhost:8080}
+    timeout: 10s
 
   scheduler:
     enable: true
@@ -74,10 +75,12 @@ app:
     base-url: https://api.stackexchange.com/2.2
     key: ${STACKOVERFLOW_KEY}
     access-token: ${STACKOVERFLOW_ACCESS_KEY}
+    timeout: 10s
 
   github:
     base-url: https://api.github.com
     token: ${GITHUB_TOKEN}
+    timeout: 10s
 
   database:
     #SQL или ORM
@@ -93,3 +96,66 @@ app:
   outbox:
     interval: 5000
     batch-size: 100
+
+  rate-limit:
+    capacity: 20
+    duration: 1m
+
+resilience4j:
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 2s
+        retry-exceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - org.springframework.web.client.ResourceAccessException
+          - java.net.SocketTimeoutException
+          - java.io.IOException
+        ignore-exceptions:
+          - org.springframework.web.client.HttpClientErrorException
+
+      exponential-bonus:
+        max-attempts: 4
+        wait-duration: 1s
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - org.springframework.web.client.ResourceAccessException
+          - java.net.SocketTimeoutException
+          - java.io.IOException
+        ignore-exceptions:
+          - org.springframework.web.client.HttpClientErrorException
+
+    instances:
+      github:
+        base-config: exponential-bonus
+      stackoverflow:
+        base-config: default
+      bot:
+        base-config: default
+
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        record-exceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - org.springframework.web.client.ResourceAccessException
+          - java.net.SocketTimeoutException
+          - java.io.IOException
+        ignore-exceptions:
+          - org.springframework.web.client.HttpClientErrorException
+    instances:
+      github:
+        base-config: default
+      stackoverflow:
+        base-config: default
+      bot:
+        base-config: default

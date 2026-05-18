@@ -5,6 +5,8 @@ import backend.academy.linktracker.scrapper.dto.AddLinkRequest;
 import backend.academy.linktracker.scrapper.dto.LinkResponse;
 import backend.academy.linktracker.scrapper.dto.ListLinksResponse;
 import backend.academy.linktracker.scrapper.dto.RemoveLinkRequest;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RestClient;
 
@@ -16,14 +18,20 @@ public class ScrapperClient {
         this.restClient = restClient;
     }
 
+    @Retry(name = "scrapper")
+    @CircuitBreaker(name = "scrapper")
     public void registerChat(long chatId) {
         restClient.post().uri("/tg-chat/{id}", chatId).retrieve().toBodilessEntity();
     }
 
+    @Retry(name = "scrapper")
+    @CircuitBreaker(name = "scrapper")
     public void deleteChat(long chatId) {
         restClient.delete().uri("/tg-chat/{id}", chatId).retrieve().toBodilessEntity();
     }
 
+    @Retry(name = "scrapper")
+    @CircuitBreaker(name = "scrapper")
     public ListLinksResponse getLinks(long chatId) {
         return restClient
                 .get()
@@ -33,6 +41,8 @@ public class ScrapperClient {
                 .body(ListLinksResponse.class);
     }
 
+    @Retry(name = "scrapper")
+    @CircuitBreaker(name = "scrapper")
     public LinkResponse addLink(long chatId, AddLinkRequest request) {
         return restClient
                 .post()
@@ -43,6 +53,8 @@ public class ScrapperClient {
                 .body(LinkResponse.class);
     }
 
+    @Retry(name = "scrapper")
+    @CircuitBreaker(name = "scrapper")
     public LinkResponse removeLink(long chatId, RemoveLinkRequest request) {
         return restClient
                 .method(HttpMethod.DELETE)

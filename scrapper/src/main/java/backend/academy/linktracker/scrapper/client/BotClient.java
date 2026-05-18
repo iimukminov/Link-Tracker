@@ -1,6 +1,8 @@
 package backend.academy.linktracker.scrapper.client;
 
 import backend.academy.linktracker.bot.dto.LinkUpdate;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.RestClient;
 
@@ -12,11 +14,9 @@ public class BotClient {
         this.restClient = restClient;
     }
 
+    @Retry(name = "bot")
+    @CircuitBreaker(name = "bot")
     public void sendUpdate(LinkUpdate update) {
-        try {
-            restClient.post().uri("/updates").body(update).retrieve().toBodilessEntity();
-        } catch (Exception e) {
-            log.atError().addKeyValue("updateId", update.getId()).setCause(e).log("Failed to send update to bot");
-        }
+        restClient.post().uri("/updates").body(update).retrieve().toBodilessEntity();
     }
 }

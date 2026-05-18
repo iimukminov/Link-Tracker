@@ -1,29 +1,24 @@
 package backend.academy.linktracker.bot.properties;
 
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import java.time.Duration;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.validator.constraints.URL;
 import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
-@ConfigurationProperties(prefix = "app.scrapper")
+@ConfigurationProperties(prefix = "app.rate-limit")
 @Validated
 @Getter
 @Setter
-@EqualsAndHashCode
-@NoArgsConstructor
-public class ScrapperProperties {
-    @NotEmpty
-    @URL
-    private String baseUrl;
+public class RateLimitProperties {
+
+    @Positive
+    private long capacity = 100;
 
     @NotNull
-    @DurationMin(millis = 100)
-    private Duration timeout;
+    @DurationMin(seconds = 1)
+    private Duration duration = Duration.ofMinutes(1);
 }

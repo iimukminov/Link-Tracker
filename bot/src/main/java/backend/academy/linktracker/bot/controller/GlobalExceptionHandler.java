@@ -1,6 +1,7 @@
 package backend.academy.linktracker.bot.controller;
 
 import backend.academy.linktracker.bot.dto.ApiErrorResponse;
+import backend.academy.linktracker.bot.exceptions.RateLimitExceededException;
 import backend.academy.linktracker.bot.properties.BotMessages;
 import java.util.Arrays;
 import java.util.List;
@@ -23,15 +24,27 @@ public class GlobalExceptionHandler {
     public ApiErrorResponse handleOtherExceptions(Exception ex) {
         log.atError().setCause(ex).log("Unhandled exception occurred in Bot API");
 
-        List<String> stackTrace = Arrays.stream(ex.getStackTrace())
+        return createErrorResponse(ex, messages.getBadRequest(), "400");
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+    public ApiErrorResponse handleRateLimitExceeded(RateLimitExceededException ex) {
+        log.atWarn().log("Rate limit exceeded in Bot API: {}", ex.getMessage());
+
+        return createErrorResponse(ex, messages.getRateLimitExceeded(), "429");
+    }
+
+    private ApiErrorResponse createErrorResponse(Exception ex, String description, String code) {
+        List<String> stacktrace = Arrays.stream(ex.getStackTrace())
                 .map(StackTraceElement::toString)
                 .toList();
 
         return new ApiErrorResponse()
-                .description(messages.getBadRequest())
-                .code("400")
+                .description(description)
+                .code(code)
                 .exceptionName(ex.getClass().getSimpleName())
                 .exceptionMessage(ex.getMessage())
-                .stacktrace(stackTrace);
+                .stacktrace(stacktrace);
     }
 }

@@ -1,6 +1,8 @@
 package backend.academy.linktracker.scrapper.client;
 
 import backend.academy.linktracker.scrapper.dto.StackOverflowResponse;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +16,8 @@ public class StackOverflowClient {
         this.restClient = restClient;
     }
 
+    @Retry(name = "stackoverflow")
+    @CircuitBreaker(name = "stackoverflow")
     public Optional<StackOverflowResponse> fetchNewAnswers(long questionId, OffsetDateTime fromDate) {
         long fromDateSeconds = fromDate.toEpochSecond();
 
@@ -30,6 +34,8 @@ public class StackOverflowClient {
         return Optional.ofNullable(response);
     }
 
+    @Retry(name = "stackoverflow")
+    @CircuitBreaker(name = "stackoverflow")
     public Optional<StackOverflowResponse> fetchNewComments(long questionId, OffsetDateTime fromDate) {
         long fromDateSeconds = fromDate.toEpochSecond();
 
@@ -46,6 +52,8 @@ public class StackOverflowClient {
         return Optional.ofNullable(response);
     }
 
+    @Retry(name = "stackoverflow")
+    @CircuitBreaker(name = "stackoverflow")
     public Optional<StackOverflowResponse> fetchQuestion(long questionId) {
         StackOverflowResponse response = restClient
                 .get()

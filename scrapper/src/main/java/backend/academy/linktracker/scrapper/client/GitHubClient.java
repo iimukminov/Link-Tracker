@@ -1,6 +1,8 @@
 package backend.academy.linktracker.scrapper.client;
 
 import backend.academy.linktracker.scrapper.dto.GitHubIssueResponse;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +16,8 @@ public class GitHubClient {
         this.restClient = restClient;
     }
 
+    @Retry(name = "github")
+    @CircuitBreaker(name = "github")
     public List<GitHubIssueResponse> fetchIssuesSince(String owner, String repo, OffsetDateTime since) {
         GitHubIssueResponse[] issueResponses = restClient
                 .get()
