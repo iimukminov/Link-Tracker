@@ -1,6 +1,6 @@
 package backend.academy.linktracker.bot.client;
 
-// Импортируем контракты скраппера!
+
 import backend.academy.linktracker.scrapper.dto.AddLinkRequest;
 import backend.academy.linktracker.scrapper.dto.LinkResponse;
 import backend.academy.linktracker.scrapper.dto.ListLinksResponse;
