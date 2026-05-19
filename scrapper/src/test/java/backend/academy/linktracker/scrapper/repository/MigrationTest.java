@@ -1,7 +1,8 @@
-package backend.academy.linktracker.scrapper;
+package backend.academy.linktracker.scrapper.repository;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import backend.academy.linktracker.scrapper.TestcontainersConfiguration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

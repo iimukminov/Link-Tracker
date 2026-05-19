@@ -1,4 +1,7 @@
 spring:
+  data:
+    redis:
+      cluster: null
   kafka:
     properties:
       schema.registry.url: mock://test-registry

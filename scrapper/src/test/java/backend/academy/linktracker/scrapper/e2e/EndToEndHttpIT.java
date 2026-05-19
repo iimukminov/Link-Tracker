@@ -1,7 +1,8 @@
-package backend.academy.linktracker.scrapper;
+package backend.academy.linktracker.scrapper.e2e;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import backend.academy.linktracker.scrapper.TestcontainersConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

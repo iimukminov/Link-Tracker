@@ -19,6 +19,16 @@ spring:
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
       properties:
         specific.avro.reader: true
+  data:
+    redis:
+      password: ${VALKEY_PASSWORD}
+      cluster:
+        nodes: ${SCRAPPER_VALKEY_CLUSTER_NODES}
+      lettuce:
+        cluster:
+          refresh:
+            adaptive: true
+            period: 60s
 app:
   scrapper:
     base-url: ${SCRAPPER_URL:http://localhost:8081}

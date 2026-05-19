@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Profile;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.images.builder.ImageFromDockerfile;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -99,5 +100,37 @@ public class TestcontainersConfiguration {
                 .withExposedPorts(8080)
                 .withEnv("TELEGRAM_BOT_TOKEN", "123:mock")
                 .dependsOn(scrapper);
+    }
+
+    @Bean
+    public GenericContainer<?> valkeyContainer() {
+        return new GenericContainer(DockerImageName.parse("valkey/valkey:8.0")) {
+            @Override
+            protected void containerIsStarted(
+                    com.github.dockerjava.api.command.InspectContainerResponse containerInfo) {
+                try {
+                    execInContainer("sh", "-c", "valkey-cli cluster addslots $(seq 0 16383)");
+                    String host = getHost();
+                    int port = getMappedPort(6379);
+                    execInContainer("valkey-cli", "config", "set", "cluster-announce-ip", host);
+                    execInContainer("valkey-cli", "config", "set", "cluster-announce-port", String.valueOf(port));
+
+                    System.setProperty("spring.data.redis.cluster.nodes", host + ":" + port);
+                } catch (Exception e) {
+                    throw new RuntimeException("Не удалось инициализировать Valkey Cluster для тестов", e);
+                }
+            }
+        }.withExposedPorts(6379)
+                .withCommand(
+                        "valkey-server",
+                        "--cluster-enabled",
+                        "yes",
+                        "--cluster-config-file",
+                        "nodes.conf",
+                        "--appendonly",
+                        "yes",
+                        "--notify-keyspace-events",
+                        "AKE")
+                .waitingFor(Wait.forLogMessage(".*Ready to accept connections.*\\n", 1));
     }
 }
