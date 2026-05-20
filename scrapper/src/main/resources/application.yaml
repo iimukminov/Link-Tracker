@@ -100,6 +100,8 @@ app:
   rate-limit:
     capacity: 20
     duration: 1m
+    cache-max-size: 50000
+    cache-expire-after-access: 30m
 
 resilience4j:
   retry:

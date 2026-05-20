@@ -21,4 +21,11 @@ public class RateLimitProperties {
     @NotNull
     @DurationMin(seconds = 1)
     private Duration duration = Duration.ofMinutes(1);
+
+    @Positive
+    private long cacheMaxSize = 10000;
+
+    @NotNull
+    @DurationMin(seconds = 1)
+    private Duration cacheExpireAfterAccess = Duration.ofMinutes(10);
 }

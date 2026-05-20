@@ -2,27 +2,33 @@ package backend.academy.linktracker.scrapper.controller.interceptor;
 
 import backend.academy.linktracker.scrapper.exceptions.RateLimitExceededException;
 import backend.academy.linktracker.scrapper.properties.RateLimitProperties;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 @Component
-@RequiredArgsConstructor
 public class RateLimitingInterceptor implements HandlerInterceptor {
 
     private final RateLimitProperties properties;
-    private final Map<String, Bucket> cache = new ConcurrentHashMap<>();
+    private final Cache<String, Bucket> cache;
+
+    public RateLimitingInterceptor(RateLimitProperties properties) {
+        this.properties = properties;
+        this.cache = Caffeine.newBuilder()
+                .maximumSize(properties.getCacheMaxSize())
+                .expireAfterAccess(properties.getCacheExpireAfterAccess())
+                .build();
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String ip = getClientIp(request);
-        Bucket bucket = cache.computeIfAbsent(ip, k -> createNewBucket());
+        Bucket bucket = cache.get(ip, k -> createNewBucket());
 
         if (!bucket.tryConsume(1)) {
             throw new RateLimitExceededException("Rate limit exceeded for IP: " + ip);
