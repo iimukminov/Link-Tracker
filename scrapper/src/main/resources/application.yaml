@@ -86,7 +86,7 @@ app:
     #SQL или ORM
     access-type: ORM
 
-  use-queue: true
+  use-queue: false
   kafka:
     topic: ${KAFKA_TOPIC_LINK_UPDATES}
     partitions: ${KAFKA_TOPIC_PARTITIONS:1}

@@ -6,11 +6,13 @@ import backend.academy.linktracker.scrapper.client.StackOverflowClient;
 import backend.academy.linktracker.scrapper.properties.BotProperties;
 import backend.academy.linktracker.scrapper.properties.GithubProperties;
 import backend.academy.linktracker.scrapper.properties.StackoverflowProperties;
+import java.net.http.HttpClient;
 import java.time.Duration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
@@ -18,9 +20,13 @@ import org.springframework.web.client.RestClient;
 public class ClientConfiguration {
 
     private ClientHttpRequestFactory createRequestFactory(Duration timeout) {
-        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout((int) timeout.toMillis());
-        factory.setReadTimeout((int) timeout.toMillis());
+        HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(timeout)
+            .build();
+
+        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
+        factory.setReadTimeout(timeout);
+
         return factory;
     }
 

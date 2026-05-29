@@ -4,20 +4,27 @@ import backend.academy.linktracker.bot.client.ScrapperClient;
 import backend.academy.linktracker.bot.properties.ScrapperProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
+import java.net.http.HttpClient;
 
 @Configuration
 public class ClientConfiguration {
 
     @Bean
     public ScrapperClient scrapperClient(RestClient.Builder builder, ScrapperProperties properties) {
-        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout((int) properties.getTimeout().toMillis());
-        factory.setReadTimeout((int) properties.getTimeout().toMillis());
+        HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(properties.getTimeout())
+            .build();
 
-        RestClient restClient =
-                builder.baseUrl(properties.getBaseUrl()).requestFactory(factory).build();
+        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
+        factory.setReadTimeout(properties.getTimeout());
+
+        RestClient restClient = builder.baseUrl(properties.getBaseUrl())
+            .requestFactory(factory)
+            .build();
+
         return new ScrapperClient(restClient);
     }
 }

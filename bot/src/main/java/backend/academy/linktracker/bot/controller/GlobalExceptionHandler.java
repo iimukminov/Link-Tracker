@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
     public ApiErrorResponse handleOtherExceptions(Exception ex) {
         log.atError().setCause(ex).log("Unhandled exception occurred in Bot API");
 
-        return createErrorResponse(ex, messages.getBadRequest(), "400");
+        return createErrorResponse(ex, messages.getBadRequest(), String.valueOf(HttpStatus.BAD_REQUEST.value()));
     }
 
     @ExceptionHandler(RateLimitExceededException.class)
@@ -32,7 +32,7 @@ public class GlobalExceptionHandler {
     public ApiErrorResponse handleRateLimitExceeded(RateLimitExceededException ex) {
         log.atWarn().log("Rate limit exceeded in Bot API: {}", ex.getMessage());
 
-        return createErrorResponse(ex, messages.getRateLimitExceeded(), "429");
+        return createErrorResponse(ex, messages.getRateLimitExceeded(), String.valueOf(HttpStatus.TOO_MANY_REQUESTS.value()));
     }
 
     private ApiErrorResponse createErrorResponse(Exception ex, String description, String code) {
