@@ -1,8 +1,8 @@
 package backend.academy.linktracker.bot.controller;
 
 import backend.academy.linktracker.bot.dto.ApiErrorResponse;
-import backend.academy.linktracker.bot.exceptions.RateLimitExceededException;
 import backend.academy.linktracker.bot.properties.BotMessages;
+import backend.academy.linktracker.common.exceptions.RateLimitExceededException;
 import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,8 @@ public class GlobalExceptionHandler {
     public ApiErrorResponse handleRateLimitExceeded(RateLimitExceededException ex) {
         log.atWarn().log("Rate limit exceeded in Bot API: {}", ex.getMessage());
 
-        return createErrorResponse(ex, messages.getRateLimitExceeded(), String.valueOf(HttpStatus.TOO_MANY_REQUESTS.value()));
+        return createErrorResponse(
+                ex, messages.getRateLimitExceeded(), String.valueOf(HttpStatus.TOO_MANY_REQUESTS.value()));
     }
 
     private ApiErrorResponse createErrorResponse(Exception ex, String description, String code) {

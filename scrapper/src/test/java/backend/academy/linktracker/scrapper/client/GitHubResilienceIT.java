@@ -1,12 +1,14 @@
 package backend.academy.linktracker.scrapper.client;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import backend.academy.linktracker.scrapper.TestcontainersConfiguration;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -23,7 +25,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 
 @SpringBootTest(
         properties = {
@@ -79,13 +80,31 @@ public class GitHubResilienceIT {
     }
 
     @Test
-    @DisplayName("TC-2.1: Retry на 5xx. Должен сделать 3 попытки при 500 ошибке сервера")
+    @DisplayName("TC-2.1: Retry на 5xx. Успешный ответ после двух ошибок")
     void shouldRetryOn5xx() {
-        stubFor(get(anyUrl()).willReturn(aResponse().withStatus(500)));
+        String retryScenario = "Retry Scenario";
 
-        assertThrows(
-                HttpServerErrorException.class,
-                () -> gitHubClient.fetchIssuesSince("owner", "repo", OffsetDateTime.now()));
+        stubFor(get(anyUrl())
+                .inScenario(retryScenario)
+                .whenScenarioStateIs(Scenario.STARTED)
+                .willReturn(aResponse().withStatus(500))
+                .willSetStateTo("Attempt 2"));
+
+        stubFor(get(anyUrl())
+                .inScenario(retryScenario)
+                .whenScenarioStateIs("Attempt 2")
+                .willReturn(aResponse().withStatus(500))
+                .willSetStateTo("Attempt 3"));
+
+        stubFor(get(anyUrl())
+                .inScenario(retryScenario)
+                .whenScenarioStateIs("Attempt 3")
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("[]")));
+
+        assertDoesNotThrow(() -> gitHubClient.fetchIssuesSince("owner", "repo", OffsetDateTime.now()));
 
         verify(3, getRequestedFor(anyUrl()));
     }

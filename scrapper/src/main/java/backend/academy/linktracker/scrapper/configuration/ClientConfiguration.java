@@ -13,16 +13,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 @Configuration
 public class ClientConfiguration {
 
     private ClientHttpRequestFactory createRequestFactory(Duration timeout) {
-        HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(timeout)
-            .build();
+        HttpClient httpClient = HttpClient.newBuilder().connectTimeout(timeout).build();
 
         JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
         factory.setReadTimeout(timeout);

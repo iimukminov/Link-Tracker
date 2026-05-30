@@ -8,8 +8,8 @@ import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.web.servlet.HandlerInterceptor;
 import java.util.function.Function;
+import org.springframework.web.servlet.HandlerInterceptor;
 
 public class RateLimitingInterceptor implements HandlerInterceptor {
 

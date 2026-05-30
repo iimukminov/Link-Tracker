@@ -2,9 +2,11 @@ package backend.academy.linktracker.scrapper.configuration;
 
 import backend.academy.linktracker.scrapper.client.BotClient;
 import backend.academy.linktracker.scrapper.properties.KafkaProperties;
+import backend.academy.linktracker.scrapper.repository.OutboxRepository;
 import backend.academy.linktracker.scrapper.service.sender.MessageSender;
 import backend.academy.linktracker.scrapper.service.sender.impl.HttpBotMessageSender;
 import backend.academy.linktracker.scrapper.service.sender.impl.KafkaBotMessageSender;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -28,9 +30,10 @@ public class SenderConfig {
     @ConditionalOnProperty(prefix = "app", name = "use-queue", havingValue = "false", matchIfMissing = true)
     public MessageSender httpBotMessageSender(
             BotClient botClient,
-            ObjectProvider<KafkaTemplate<String, Object>> kafkaTemplateProvider,
+            OutboxRepository outboxRepository,
+            ObjectMapper objectMapper,
             ObjectProvider<KafkaProperties> kafkaPropertiesProvider) {
 
-        return new HttpBotMessageSender(botClient, kafkaTemplateProvider, kafkaPropertiesProvider);
+        return new HttpBotMessageSender(botClient, outboxRepository, objectMapper, kafkaPropertiesProvider);
     }
 }

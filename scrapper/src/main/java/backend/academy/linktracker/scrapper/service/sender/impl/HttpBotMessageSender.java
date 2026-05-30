@@ -1,22 +1,24 @@
 package backend.academy.linktracker.scrapper.service.sender.impl;
 
-import backend.academy.linktracker.avro.LinkUpdateAvro;
 import backend.academy.linktracker.bot.dto.LinkUpdate;
 import backend.academy.linktracker.scrapper.client.BotClient;
+import backend.academy.linktracker.scrapper.entity.OutboxEvent;
 import backend.academy.linktracker.scrapper.properties.KafkaProperties;
+import backend.academy.linktracker.scrapper.repository.OutboxRepository;
 import backend.academy.linktracker.scrapper.service.sender.MessageSender;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.kafka.core.KafkaTemplate;
 
 @Slf4j
 @RequiredArgsConstructor
 public class HttpBotMessageSender implements MessageSender {
 
     private final BotClient botClient;
-    private final ObjectProvider<KafkaTemplate<String, Object>> kafkaTemplateProvider;
+    private final OutboxRepository outboxRepository;
+    private final ObjectMapper objectMapper;
     private final ObjectProvider<KafkaProperties> kafkaPropertiesProvider;
 
     @Override
@@ -26,45 +28,41 @@ public class HttpBotMessageSender implements MessageSender {
         } catch (CallNotPermittedException e) {
             log.atWarn()
                     .addKeyValue("updateId", update.getId())
-                    .log("Circuit Breaker is OPEN for BotClient. Routing update to Fallback (Kafka)...");
+                    .log("Circuit Breaker is OPEN for BotClient. Routing update to Fallback (Outbox)...");
             fallbackSend(update);
         } catch (Exception e) {
             log.atError()
                     .addKeyValue("updateId", update.getId())
                     .setCause(e)
-                    .log("HttpBotMessageSender failed after retries. Routing update to Fallback (Kafka)...");
+                    .log("HttpBotMessageSender failed after retries. Routing update to Fallback (Outbox)...");
             fallbackSend(update);
         }
     }
 
     private void fallbackSend(LinkUpdate update) {
-        KafkaTemplate<String, Object> kafkaTemplate = kafkaTemplateProvider.getIfAvailable();
         KafkaProperties kafkaProperties = kafkaPropertiesProvider.getIfAvailable();
 
-        if (kafkaTemplate != null && kafkaProperties != null) {
+        if (kafkaProperties != null) {
             try {
-                LinkUpdateAvro avroMessage = LinkUpdateAvro.newBuilder()
-                        .setId(update.getId())
-                        .setUrl(update.getUrl().toString())
-                        .setDescription(update.getDescription())
-                        .setTgChatIds(update.getTgChatIds())
-                        .build();
+                OutboxEvent event = new OutboxEvent();
+                event.setPayload(objectMapper.writeValueAsString(update));
+                event.setTopic(kafkaProperties.getTopic());
 
-                kafkaTemplate.send(kafkaProperties.getTopic(), String.valueOf(update.getId()), avroMessage);
+                outboxRepository.save(event);
 
                 log.atInfo()
                         .addKeyValue("updateId", update.getId())
-                        .log("Successfully sent update via Fallback transport (Kafka).");
-            } catch (Exception kafkaEx) {
+                        .log("Successfully saved update to Outbox for Fallback delivery.");
+            } catch (Exception ex) {
                 log.atError()
                         .addKeyValue("updateId", update.getId())
-                        .setCause(kafkaEx)
-                        .log("Critical failure: Fallback transport (Kafka) also failed!");
+                        .setCause(ex)
+                        .log("Critical failure: Failed to save to Outbox!");
             }
         } else {
             log.atError()
                     .addKeyValue("updateId", update.getId())
-                    .log("Fallback KafkaTemplate is bean-unavailable. Update is lost.");
+                    .log("Fallback KafkaProperties is bean-unavailable. Update is lost.");
         }
     }
 }
