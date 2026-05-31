@@ -31,7 +31,9 @@ public class ScrapperQueueListener {
                     .id(update.getId())
                     .url(java.net.URI.create(update.getUrl()))
                     .description(update.getDescription())
-                    .tgChatIds(new ArrayList<>(update.getTgChatIds()));
+                    .tgChatIds(new ArrayList<>(update.getTgChatIds()))
+                    .author(update.getAuthor() != null ? update.getAuthor() : null)
+                    .priority(update.getPriority() != null ? update.getPriority() : null);
 
             botUpdateService.processUpdate(dto);
         } catch (Exception e) {

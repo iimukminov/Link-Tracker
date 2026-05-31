@@ -95,11 +95,13 @@ public class StackOverflowLinkHandler extends AbstractLinkHandler {
 
             if (itemDate.isAfter(lastUpdate)) {
                 String description = messageFormatter.formatStackOverflowUpdate(item, title, type, itemDate);
+                String author = item.owner() != null ? item.owner().displayName() : null;
 
                 updates.add(new LinkUpdate()
                         .id(linkData.getId())
                         .url(linkData.getUrl())
                         .description(description)
+                        .author(author)
                         .tgChatIds(chatIds));
 
                 if (itemDate.isAfter(newMax)) {

@@ -39,8 +39,8 @@ app:
     update-listener-sleep: 1s
     debug: false
   kafka:
-    topic: ${KAFKA_TOPIC_LINK_UPDATES}
-    dlqTopic: ${KAFKA_TOPIC_LINK_UPDATES}_dlq
+    topic: ${KAFKA_TOPIC_PROCESSED_UPDATES:link.processed-updates}
+    dlqTopic: ${KAFKA_TOPIC_PROCESSED_UPDATES:link.processed-updates}_dlq
     partitions: ${KAFKA_TOPIC_PARTITIONS:1}
     replicas: ${KAFKA_TOPIC_REPLICAS:1}
     retry:

@@ -88,7 +88,7 @@ app:
 
   use-queue: false
   kafka:
-    topic: ${KAFKA_TOPIC_LINK_UPDATES}
+    topic: ${KAFKA_TOPIC_RAW_UPDATES:link.raw-updates}
     partitions: ${KAFKA_TOPIC_PARTITIONS:1}
     replicas: ${KAFKA_TOPIC_REPLICAS:1}
 

@@ -1,0 +1,28 @@
+spring:
+  kafka:
+    consumer:
+      group-id: ai-agent-test-group
+      properties:
+        schema.registry.url: mock://test-registry
+    producer:
+      properties:
+        schema.registry.url: mock://test-registry
+
+app:
+  kafka:
+    topic:
+      raw-updates: link.raw-updates.test
+      processed-updates: link.processed-updates.test
+      partitions: 1
+      replicas: 1
+
+ai-agent:
+  filtering:
+    stop-words:
+      - spam
+    excluded-authors:
+      - bot-user
+    min-length: 10
+  summarization:
+    threshold: 15
+    provider: STUB

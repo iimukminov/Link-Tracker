@@ -13,7 +13,7 @@
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webmvc</artifactId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -26,6 +26,10 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-restclient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-json</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -72,55 +76,16 @@
             <artifactId>commons-codec</artifactId>
         </dependency>
 
-        <!-- Database: -->
-        <!-- <dependency> -->
-        <!--     <groupId>org.springframework.boot</groupId> -->
-        <!--     &lt;!&ndash; or: spring-boot-starter-data-jpa &ndash;&gt; -->
-        <!--     <artifactId>spring-boot-starter-data-jdbc</artifactId> -->
-        <!-- </dependency> -->
-        <!-- <dependency> -->
-        <!--     <groupId>org.springframework.boot</groupId> -->
-        <!--     &lt;!&ndash; or: spring-boot-starter-flyway &ndash;&gt; -->
-        <!--     <artifactId>spring-boot-starter-liquibase</artifactId> -->
-        <!-- </dependency> -->
+        <dependency>
+            <groupId>backend.academy.link-tracker</groupId>
+            <artifactId>api-contracts</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
-        <!-- gRPC: -->
-        <!-- <dependency>-->
-        <!--     <groupId>org.springframework.grpc</groupId> -->
-        <!--     <artifactId>spring-grpc-spring-boot-starter</artifactId> -->
-        <!-- </dependency> -->
-        <!-- <dependency> -->
-        <!--     <groupId>io.grpc</groupId> -->
-        <!--     <artifactId>grpc-services</artifactId> -->
-        <!-- </dependency> -->
-
-        <!-- GraphQL: -->
-        <!-- <dependency> -->
-        <!--     <groupId>org.springframework.boot</groupId> -->
-        <!--     <artifactId>spring-boot-starter-graphql</artifactId> -->
-        <!-- </dependency> -->
-
-        <!-- Redis: -->
-        <!-- <dependency> -->
-        <!--     <groupId>org.springframework.boot</groupId> -->
-        <!--     <artifactId>spring-boot-starter-data-redis</artifactId> -->
-        <!-- </dependency> -->
-
-        <!-- Kafka: -->
-        <!-- <dependency>-->
-        <!--     <groupId>org.springframework.boot</groupId> -->
-        <!--     <artifactId>spring-boot-starter-kafka</artifactId> -->
-        <!-- </dependency> -->
-
-        <!-- Opentelemetry support: -->
-        <!-- <dependency> -->
-        <!--     <groupId>org.springframework.boot</groupId> -->
-        <!--     <artifactId>spring-boot-starter-opentelemetry</artifactId> -->
-        <!-- </dependency> -->
-        <!-- <dependency> -->
-        <!--     <groupId>io.opentelemetry.instrumentation</groupId> -->
-        <!--     <artifactId>opentelemetry-logback-appender-1.0</artifactId> -->
-        <!-- </dependency> -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-kafka</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -158,6 +123,13 @@
             <artifactId>testcontainers-redis</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.wiremock.integrations</groupId>
             <artifactId>wiremock-spring-boot-standalone</artifactId>
@@ -192,19 +164,6 @@
 
     <build>
         <plugins>
-            <!-- .proto gRPC compilation: -->
-            <!-- <plugin> -->
-            <!--     <groupId>io.github.ascopes</groupId> -->
-            <!--     <artifactId>protobuf-maven-plugin</artifactId> -->
-            <!--     <executions> -->
-            <!--         <execution> -->
-            <!--             <goals> -->
-            <!--                 <goal>generate</goal> -->
-            <!--             </goals> -->
-            <!--         </execution> -->
-            <!--     </executions> -->
-            <!-- </plugin> -->
-            <!-- To build OCI image: https://docs.spring.io/spring-boot/maven-plugin/build-image.html -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

@@ -10,6 +10,10 @@ COPY build-report-aggregate/pom.xml build-report-aggregate/
 COPY api-contracts/pom.xml api-contracts/
 COPY api-contracts/src api-contracts/src
 
+# Копируем модуль common
+COPY common/pom.xml common/
+COPY common/src common/src
+
 # Скачиваем зависимости только для scrapper
 RUN --mount=type=cache,target=/root/.m2 \
     mvn dependency:go-offline -pl scrapper -am

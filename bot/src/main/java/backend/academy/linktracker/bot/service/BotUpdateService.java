@@ -43,8 +43,12 @@ public class BotUpdateService {
                 Boolean isNew = redisTemplate.opsForValue().setIfAbsent(redisKey, "sent", Duration.ofHours(24));
 
                 if (Boolean.TRUE.equals(isNew)) {
-                    String messageText =
-                            String.format(messages.getUpdate(), linkUpdate.getDescription(), linkUpdate.getUrl());
+                    String messageText = String.format(
+                            messages.getUpdate(),
+                            linkUpdate.getPriority() != null ? linkUpdate.getPriority() : "ОБЫЧНЫЙ",
+                            linkUpdate.getUrl(),
+                            linkUpdate.getAuthor() != null ? linkUpdate.getAuthor() : "Не указан",
+                            linkUpdate.getDescription());
                     telegramSender.sendMessage(chatId, messageText);
                 } else {
                     log.atInfo()

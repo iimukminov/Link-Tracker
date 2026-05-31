@@ -56,10 +56,13 @@ public class GitHubLinkHandler extends AbstractLinkHandler {
 
                 String description = messageFormatter.formatGitHubUpdate(issue, type);
 
+                String author = issue.user() != null ? issue.user().login() : null;
+
                 updates.add(new LinkUpdate()
                         .id(linkData.getId())
                         .url(linkData.getUrl())
                         .description(description)
+                        .author(author)
                         .tgChatIds(chatIds));
 
                 if (issue.updatedAt().isAfter(maxUpdate)) {

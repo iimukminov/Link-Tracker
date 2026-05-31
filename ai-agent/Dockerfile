@@ -1,33 +1,35 @@
-# syntax=docker/dockerfile:1
 FROM maven:3.9-eclipse-temurin-25 AS builder
 WORKDIR /app
 
-# Копируем все POM-файлы для кэширования зависимостей
+# Копируем структуру проекта
 COPY pom.xml .
 COPY bot/pom.xml bot/
 COPY scrapper/pom.xml scrapper/
 COPY ai-agent/pom.xml ai-agent/
 COPY build-report-aggregate/pom.xml build-report-aggregate/
+
+# Копируем контракты (обязательно для генерации Avro)
 COPY api-contracts/pom.xml api-contracts/
 COPY api-contracts/src api-contracts/src
 
-# Копируем модуль common
+# Если у тебя есть модуль common, его тоже нужно скопировать для успешной сборки
 COPY common/pom.xml common/
 COPY common/src common/src
 
-# Скачиваем зависимости только для bot
+# Скачиваем зависимости только для ai-agent
 RUN --mount=type=cache,target=/root/.m2 \
-    mvn dependency:go-offline -pl bot -am
+    mvn dependency:go-offline -pl ai-agent -am
 
-# Копируем исходники и собираем
-COPY bot/src bot/src
+# Копируем исходники ai-agent и собираем
+COPY ai-agent/src ai-agent/src
 RUN --mount=type=cache,target=/root/.m2 \
-    mvn clean package -pl bot -am -DskipTests
+    mvn clean package -pl ai-agent -am -DskipTests
 
 # --- Слой распаковки ---
 FROM eclipse-temurin:25-jre-alpine AS extractor
 WORKDIR /app
-COPY --from=builder /app/bot/target/*.jar app.jar
+# Берем jar-файл из папки ai-agent
+COPY --from=builder /app/ai-agent/target/*.jar app.jar
 RUN java -Djarmode=layertools -jar app.jar extract
 
 # --- Финальный образ ---

@@ -28,6 +28,8 @@ public class KafkaBotMessageSender implements MessageSender {
                 .setUrl(update.getUrl().toString())
                 .setDescription(update.getDescription())
                 .setTgChatIds(update.getTgChatIds())
+                .setAuthor(update.getAuthor())
+                .setPriority(update.getPriority())
                 .build();
 
         kafkaTemplate.send(topicName, String.valueOf(update.getId()), avroMessage);

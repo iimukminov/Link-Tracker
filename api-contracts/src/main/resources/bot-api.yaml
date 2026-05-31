@@ -57,3 +57,8 @@ components:
           items:
             type: integer
             format: int64
+        author:
+          type: string
+        priority:
+          type: string
+

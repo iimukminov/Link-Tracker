@@ -1,6 +1,48 @@
 server:
-  port: 8082
+  port: 8083
 
 spring:
   application:
     name: ai-agent
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      group-id: ai-agent-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        schema.registry.url: ${KAFKA_SCHEMA_REGISTRY_URL}
+        specific.avro.reader: true
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      properties:
+        schema.registry.url: ${KAFKA_SCHEMA_REGISTRY_URL}
+
+app:
+  kafka:
+    topic:
+      raw-updates: ${KAFKA_TOPIC_RAW_UPDATES:link.raw-updates}
+      processed-updates: ${KAFKA_TOPIC_PROCESSED_UPDATES:link.processed-updates}
+      partitions: ${KAFKA_TOPIC_PARTITIONS:3}
+      replicas: ${KAFKA_TOPIC_REPLICAS:3}
+
+ai-agent:
+  filtering:
+    stop-words:
+      - spam
+      - ads
+      - promo
+    excluded-authors:
+      - bot-user
+      - spammer
+    min-length: 20
+  summarization:
+    threshold: 500
+    provider: ${AI_AGENT_SUMMARIZATION_PROVIDER:api}
+    api:
+      base-url: ${AI_AGENT_SUMMARIZATION_API_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
+      token: ${AI_AGENT_SUMMARIZATION_API_TOKEN:твой_токен_gemini}
+      model: ${AI_AGENT_SUMMARIZATION_API_MODEL:gemini-2.5-flash}
