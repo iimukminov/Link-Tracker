@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 
 class SubstringSummarizerTest {
 
-
     private final SubstringSummarizer summarizer = new SubstringSummarizer();
 
     @Test
