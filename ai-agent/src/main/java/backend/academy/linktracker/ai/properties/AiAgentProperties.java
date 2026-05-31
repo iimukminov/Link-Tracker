@@ -10,6 +10,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -80,6 +81,7 @@ public class AiAgentProperties {
         private String prompt = "Summarize the following update in 2-3 sentences:";
 
         @NotNull
+        @DurationMin(seconds = 1)
         private Duration timeout = Duration.ofSeconds(5);
     }
 
@@ -96,7 +98,7 @@ public class AiAgentProperties {
     @Getter
     @Setter
     public static class Grouping {
-        @Min(1000)
+        @DurationMin(seconds = 1)
         private Duration windowMs = Duration.ofMillis(30000);
     }
 }
