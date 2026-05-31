@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import backend.academy.linktracker.ai.service.GroupingService;
 import backend.academy.linktracker.avro.LinkUpdateAvro;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.apache.kafka.clients.consumer.Consumer;
@@ -16,7 +17,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
@@ -74,17 +74,37 @@ public class RawUpdateConsumerIT {
 
             groupingService.flushGroupedUpdates();
 
-            ConsumerRecords<String, Object> records = KafkaTestUtils.getRecords(consumer, Duration.ofSeconds(10));
+            long timeoutTime = System.currentTimeMillis() + 10000;
+            boolean messageFound = false;
+            List<LinkUpdateAvro> processedUpdates = new ArrayList<>();
 
-            assertThat(records.count())
-                    .withFailMessage("Сообщение не пришло в выходной топик за 10 секунд")
-                    .isGreaterThan(0);
+            while (System.currentTimeMillis() < timeoutTime && !messageFound) {
+                ConsumerRecords<String, Object> records = consumer.poll(Duration.ofMillis(500));
+                for (var record : records) {
+                    LinkUpdateAvro processed = (LinkUpdateAvro) record.value();
+                    processedUpdates.add(processed);
+                    if (processed.getId() == 101L) {
+                        messageFound = true;
+                        break;
+                    }
+                }
+            }
 
-            Object value = records.iterator().next().value();
-            LinkUpdateAvro processed = (LinkUpdateAvro) value;
+            assertThat(messageFound)
+                    .withFailMessage(() -> "Сообщение с ID 101L не найдено за 10 секунд. Полученные ID: "
+                            + processedUpdates.stream()
+                                    .map(LinkUpdateAvro::getId)
+                                    .toList())
+                    .isTrue();
 
-            assertThat(processed.getId()).isEqualTo(101L);
-            assertThat(processed.getPriority().toString()).isEqualTo("HIGH");
+            LinkUpdateAvro targetMessage = processedUpdates.stream()
+                    .filter(p -> p.getId() == 101L)
+                    .findFirst()
+                    .orElseThrow();
+
+            assertThat(targetMessage.getId()).isEqualTo(101L);
+            assertThat(targetMessage.getDescription()).contains("This is a");
+            assertThat(targetMessage.getPriority()).isEqualTo("HIGH");
         }
     }
 
@@ -93,8 +113,7 @@ public class RawUpdateConsumerIT {
     void shouldNotPublishFilteredUpdate() throws Exception {
         try (Consumer<String, Object> consumer = consumerFactory.createConsumer("test-out-group-2", "test-client-2")) {
             consumer.subscribe(Collections.singletonList("link.processed-updates.test"));
-
-            consumer.poll(Duration.ofSeconds(1));
+            consumer.poll(Duration.ofMillis(500));
 
             LinkUpdateAvro rawUpdate = LinkUpdateAvro.newBuilder()
                     .setId(303L)
@@ -108,8 +127,27 @@ public class RawUpdateConsumerIT {
                     .send("link.raw-updates.test", String.valueOf(rawUpdate.getId()), rawUpdate)
                     .get();
 
-            ConsumerRecords<String, Object> records = KafkaTestUtils.getRecords(consumer, Duration.ofSeconds(3));
-            assertThat(records.isEmpty()).isTrue();
+            Thread.sleep(1000);
+
+            groupingService.flushGroupedUpdates();
+
+            long timeoutTime = System.currentTimeMillis() + 5000;
+            boolean badMessageFound = false;
+
+            while (System.currentTimeMillis() < timeoutTime && !badMessageFound) {
+                ConsumerRecords<String, Object> records = consumer.poll(Duration.ofMillis(500));
+                for (var record : records) {
+                    LinkUpdateAvro processed = (LinkUpdateAvro) record.value();
+                    if (processed.getId() == 303L) {
+                        badMessageFound = true;
+                        break;
+                    }
+                }
+            }
+
+            assertThat(badMessageFound)
+                    .withFailMessage("Отфильтрованное сообщение (ID 303L) ошибочно попало в выходной топик")
+                    .isFalse();
         }
     }
 
@@ -132,12 +170,31 @@ public class RawUpdateConsumerIT {
                 .send("link.raw-updates.test", String.valueOf(validUpdate.getId()), validUpdate)
                 .get();
 
+        Thread.sleep(1000);
+
+        groupingService.flushGroupedUpdates();
+
         try (Consumer<String, Object> consumer =
                 consumerFactory.createConsumer("test-check-group1", "test-client-check1")) {
             consumer.subscribe(Collections.singletonList("link.processed-updates.test"));
-            ConsumerRecords<String, Object> records = KafkaTestUtils.getRecords(consumer, Duration.ofSeconds(10));
 
-            assertThat(records.count()).isGreaterThan(0);
+            long timeoutTime = System.currentTimeMillis() + 10000;
+            boolean messageFound = false;
+
+            while (System.currentTimeMillis() < timeoutTime && !messageFound) {
+                ConsumerRecords<String, Object> records = consumer.poll(Duration.ofMillis(500));
+                for (var record : records) {
+                    LinkUpdateAvro processed = (LinkUpdateAvro) record.value();
+                    if (processed.getId() == 999L) {
+                        messageFound = true;
+                        break;
+                    }
+                }
+            }
+
+            assertThat(messageFound)
+                    .withFailMessage("Валидное сообщение (ID 999L) не найдено после битого сообщения")
+                    .isTrue();
         }
     }
 }

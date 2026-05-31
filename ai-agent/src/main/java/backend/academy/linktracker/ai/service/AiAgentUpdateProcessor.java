@@ -25,8 +25,8 @@ public class AiAgentUpdateProcessor {
         int threshold = properties.getSummarization().getThreshold();
         String description = rawUpdate.getDescription() != null ? rawUpdate.getDescription() : "";
 
+        String priority = prioritizationService.determinePriority(description);
         String summarizedDescription = textSummarizer.summarize(description, threshold);
-        String priority = prioritizationService.determinePriority(summarizedDescription);
 
         log.atInfo()
                 .addKeyValue("updateId", rawUpdate.getId())

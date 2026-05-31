@@ -26,3 +26,14 @@ ai-agent:
   summarization:
     threshold: 15
     provider: STUB
+  prioritization:
+    high-keywords:
+      - critical
+      - urgent
+      - breaking
+      - security
+    low-keywords:
+      - minor
+      - typo
+      - chore
+      - docs
