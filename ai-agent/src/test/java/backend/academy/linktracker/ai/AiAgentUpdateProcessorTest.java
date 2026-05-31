@@ -2,7 +2,6 @@ package backend.academy.linktracker.ai;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -57,7 +56,8 @@ class AiAgentUpdateProcessorTest {
 
         when(filterService.isPass(rawUpdate)).thenReturn(true);
         when(textSummarizer.summarize(rawUpdate.getDescription(), 10)).thenReturn(summarized);
-        when(prioritizationService.determinePriority(rawUpdate.getDescription())).thenReturn("HIGH");
+        when(prioritizationService.determinePriority(rawUpdate.getDescription()))
+                .thenReturn("HIGH");
 
         LinkUpdateAvro processed = processor.process(rawUpdate).orElseThrow();
 
