@@ -1,5 +1,6 @@
 package backend.academy.linktracker.ai.service.impl;
 
+import backend.academy.linktracker.ai.metrics.AiAgentMetrics;
 import backend.academy.linktracker.ai.properties.AiAgentProperties;
 import backend.academy.linktracker.ai.service.TextSummarizer;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -20,14 +21,17 @@ public class LlmContentSummarizer implements TextSummarizer {
     private final AiAgentProperties properties;
     private final ObjectMapper objectMapper;
     private final RestClient restClient;
+    private final AiAgentMetrics  metrics;
 
     public LlmContentSummarizer(
             AiAgentProperties properties,
             ObjectMapper objectMapper,
-            @Qualifier("geminiRestClient") RestClient restClient) {
+            @Qualifier("geminiRestClient") RestClient restClient,
+            AiAgentMetrics  metrics) {
         this.properties = properties;
         this.objectMapper = objectMapper;
         this.restClient = restClient;
+        this.metrics = metrics;
     }
 
     @Override
@@ -38,9 +42,11 @@ public class LlmContentSummarizer implements TextSummarizer {
             throw new IllegalStateException("LLM Summarization API is not properly configured");
         }
 
-        Map<String, Object> requestBody = buildGeminiRequest(text);
+        long startedAt = System.currentTimeMillis();
+        try {
+            Map<String, Object> requestBody = buildGeminiRequest(text);
 
-        String response = restClient
+            String response = restClient
                 .post()
                 .uri(URI.create(buildEndpointUrl(api)))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -48,11 +54,15 @@ public class LlmContentSummarizer implements TextSummarizer {
                 .retrieve()
                 .body(String.class);
 
-        String summary = parseResponse(response);
-        if (summary == null || summary.isBlank()) {
-            throw new IllegalStateException("LLM API returned empty result");
+            String summary = parseResponse(response);
+            if (summary == null || summary.isBlank()) {
+                throw new IllegalStateException("LLM API returned empty result");
+            }
+            return summary;
+        } finally {
+            metrics.recordDuration("llm_api", startedAt);
         }
-        return summary;
+
     }
 
     private Map<String, Object> buildGeminiRequest(String text) {

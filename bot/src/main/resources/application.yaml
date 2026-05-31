@@ -94,3 +94,96 @@ resilience4j:
     instances:
       scrapper:
         base-config: default
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+      base-path: /
+      path-mapping:
+        prometheus: metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      app_type: bot
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+  prometheus:
+    metrics:
+      export:
+        pushgateway:
+          enabled: ${PUSHGATEWAY_ENABLED:false}
+          address: ${PUSHGATEWAY_ADDRESS:localhost:9091}
+          job: ${spring.application.name}
+          push-rate: 30s
+          grouping-key:
+            application: ${spring.application.name}
+            app_type: bot
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+      base-path: /
+      path-mapping:
+        prometheus: metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      app_type: bot
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+  prometheus:
+    metrics:
+      export:
+        pushgateway:
+          enabled: ${PUSHGATEWAY_ENABLED:false}
+          address: ${PUSHGATEWAY_ADDRESS:localhost:9091}
+          job: ${spring.application.name}
+          push-rate: 30s
+          grouping-key:
+            application: ${spring.application.name}
+            app_type: bot
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+      base-path: /
+      path-mapping:
+        prometheus: metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      app_type: bot
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+  prometheus:
+    metrics:
+      export:
+        pushgateway:
+          enabled: ${PUSHGATEWAY_ENABLED:false}
+          address: ${PUSHGATEWAY_ADDRESS:localhost:9091}
+          job: ${spring.application.name}
+          push-rate: 30s
+          grouping-key:
+            application: ${spring.application.name}
+            app_type: bot

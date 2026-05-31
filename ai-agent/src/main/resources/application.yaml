@@ -59,3 +59,96 @@ ai-agent:
       - docs
   grouping:
     window-ms: 30000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+      base-path: /
+      path-mapping:
+        prometheus: metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      app_type: ai-agent
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+  prometheus:
+    metrics:
+      export:
+        pushgateway:
+          enabled: ${PUSHGATEWAY_ENABLED:false}
+          address: ${PUSHGATEWAY_ADDRESS:localhost:9091}
+          job: ${spring.application.name}
+          push-rate: 30s
+          grouping-key:
+            application: ${spring.application.name}
+            app_type: ai-agent
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+      base-path: /
+      path-mapping:
+        prometheus: metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      app_type: ai-agent
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+  prometheus:
+    metrics:
+      export:
+        pushgateway:
+          enabled: ${PUSHGATEWAY_ENABLED:false}
+          address: ${PUSHGATEWAY_ADDRESS:localhost:9091}
+          job: ${spring.application.name}
+          push-rate: 30s
+          grouping-key:
+            application: ${spring.application.name}
+            app_type: ai-agent
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+      base-path: /
+      path-mapping:
+        prometheus: metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      app_type: ai-agent
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+  prometheus:
+    metrics:
+      export:
+        pushgateway:
+          enabled: ${PUSHGATEWAY_ENABLED:false}
+          address: ${PUSHGATEWAY_ADDRESS:localhost:9091}
+          job: ${spring.application.name}
+          push-rate: 30s
+          grouping-key:
+            application: ${spring.application.name}
+            app_type: ai-agent

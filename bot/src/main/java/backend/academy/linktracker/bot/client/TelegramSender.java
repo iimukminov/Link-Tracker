@@ -1,5 +1,6 @@
 package backend.academy.linktracker.bot.client;
 
+import backend.academy.linktracker.bot.metrics.BotMetrics;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.BotCommand;
 import com.pengrad.telegrambot.model.request.ParseMode;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 public class TelegramSender {
 
     private final TelegramBot bot;
+    private final BotMetrics metrics;
 
     public void sendMessage(long chatId, String text) {
         log.atInfo()
@@ -27,6 +29,7 @@ public class TelegramSender {
         BaseResponse response = bot.execute(new SendMessage(chatId, text).parseMode(ParseMode.HTML));
 
         if (!response.isOk()) {
+            metrics.recordSentNotification();
             log.atError()
                     .setMessage("Failed to send message")
                     .addKeyValue("chatId", chatId)

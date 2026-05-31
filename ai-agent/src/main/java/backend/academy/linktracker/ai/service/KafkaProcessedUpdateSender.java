@@ -1,5 +1,6 @@
 package backend.academy.linktracker.ai.service;
 
+import backend.academy.linktracker.ai.metrics.AiAgentMetrics;
 import backend.academy.linktracker.ai.properties.KafkaTopicProperties;
 import backend.academy.linktracker.avro.LinkUpdateAvro;
 import lombok.RequiredArgsConstructor;
@@ -14,11 +15,14 @@ public class KafkaProcessedUpdateSender {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final KafkaTopicProperties kafkaTopicProperties;
+    private final AiAgentMetrics  metrics;
 
     public void send(LinkUpdateAvro update) {
         String outputTopic = kafkaTopicProperties.getProcessedUpdates();
+        long startedAt = System.currentTimeMillis();
 
         kafkaTemplate.send(outputTopic, String.valueOf(update.getId()), update).whenComplete((result, exception) -> {
+            metrics.recordDuration("kafka_send", startedAt);
             if (exception != null) {
                 log.atWarn()
                         .setCause(exception)

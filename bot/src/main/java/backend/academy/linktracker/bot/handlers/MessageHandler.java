@@ -1,6 +1,7 @@
 package backend.academy.linktracker.bot.handlers;
 
 import backend.academy.linktracker.bot.command.CommandRegistry;
+import backend.academy.linktracker.bot.metrics.BotMetrics;
 import backend.academy.linktracker.bot.service.UserStateService;
 import com.pengrad.telegrambot.model.Message;
 import lombok.RequiredArgsConstructor;
@@ -14,11 +15,14 @@ public class MessageHandler {
     private final CommandRegistry commandRegistry;
     private final UserStateService userStateService;
     private final StateHandlerRegistry stateHandlerRegistry;
+    private final BotMetrics metrics;
 
     public void handle(Message message) {
         if (message == null || message.text() == null) {
             return;
         }
+
+        metrics.recordTelegramRequest("text_message");
 
         if (message.text().startsWith("/")) {
             handleCommand(message);
@@ -31,24 +35,31 @@ public class MessageHandler {
         String commandName = extractCommandName(message.text());
 
         log.atInfo()
-                .setMessage("Dispatching command")
-                .addKeyValue("chatId", message.chat().id())
-                .addKeyValue("command", commandName)
-                .addKeyValue("fullText", message.text())
-                .log();
+            .setMessage("Dispatching command")
+            .addKeyValue("chatId", message.chat().id())
+            .addKeyValue("command", commandName)
+            .addKeyValue("fullText", message.text())
+            .log();
 
-        commandRegistry.getCommand(commandName).execute(message);
+        metrics.recordCommandRequest(commandName);
+
+        long startedAt = System.nanoTime();
+        try {
+            commandRegistry.getCommand(commandName).execute(message);
+        } finally {
+            metrics.recordCommandHandlingDuration(commandName, startedAt);
+        }
     }
 
     private void handleNonCommand(Message message) {
         long chatId = message.chat().id();
 
         log.atInfo()
-                .setMessage("Dispatching non command")
-                .addKeyValue("chatId", chatId)
-                .addKeyValue("handler", userStateService.getState(chatId))
-                .addKeyValue("fullText", message.text())
-                .log();
+            .setMessage("Dispatching non command")
+            .addKeyValue("chatId", chatId)
+            .addKeyValue("handler", userStateService.getState(chatId))
+            .addKeyValue("fullText", message.text())
+            .log();
 
         stateHandlerRegistry.getHandler(userStateService.getState(chatId)).handle(message);
     }

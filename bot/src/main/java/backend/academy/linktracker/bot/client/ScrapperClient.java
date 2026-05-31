@@ -1,5 +1,6 @@
 package backend.academy.linktracker.bot.client;
 
+import backend.academy.linktracker.bot.metrics.BotMetrics;
 import backend.academy.linktracker.scrapper.dto.AddLinkRequest;
 import backend.academy.linktracker.scrapper.dto.LinkResponse;
 import backend.academy.linktracker.scrapper.dto.ListLinksResponse;
@@ -12,55 +13,82 @@ import org.springframework.web.client.RestClient;
 public class ScrapperClient {
 
     private final RestClient restClient;
+    private final BotMetrics metrics;
 
-    public ScrapperClient(RestClient restClient) {
+    public ScrapperClient(RestClient restClient, BotMetrics metrics) {
         this.restClient = restClient;
+        this.metrics = metrics;
     }
 
     @Retry(name = "scrapper")
     @CircuitBreaker(name = "scrapper")
     public void registerChat(long chatId) {
-        restClient.post().uri("/tg-chat/{id}", chatId).retrieve().toBodilessEntity();
+        long startedAt = System.nanoTime();
+        try {
+            restClient.post().uri("/tg-chat/{id}", chatId).retrieve().toBodilessEntity();
+        } finally {
+            metrics.recordCommandDuration("scrapper_sync_api", "registerChat", startedAt);
+        }
     }
 
     @Retry(name = "scrapper")
     @CircuitBreaker(name = "scrapper")
     public void deleteChat(long chatId) {
-        restClient.delete().uri("/tg-chat/{id}", chatId).retrieve().toBodilessEntity();
+        long startedAt = System.nanoTime();
+        try {
+            restClient.delete().uri("/tg-chat/{id}", chatId).retrieve().toBodilessEntity();
+        } finally {
+            metrics.recordCommandDuration("scrapper_sync_api", "deleteChat", startedAt);
+        }
     }
 
     @Retry(name = "scrapper")
     @CircuitBreaker(name = "scrapper")
     public ListLinksResponse getLinks(long chatId) {
-        return restClient
+        long startedAt = System.nanoTime();
+        try {
+            return restClient
                 .get()
                 .uri("/links")
                 .header("Tg-Chat-Id", String.valueOf(chatId))
                 .retrieve()
                 .body(ListLinksResponse.class);
+        } finally {
+            metrics.recordCommandDuration("scrapper_sync_api", "getLinks", startedAt);
+        }
     }
 
     @Retry(name = "scrapper")
     @CircuitBreaker(name = "scrapper")
     public LinkResponse addLink(long chatId, AddLinkRequest request) {
-        return restClient
+        long startedAt = System.nanoTime();
+        try {
+            return restClient
                 .post()
                 .uri("/links")
                 .header("Tg-Chat-Id", String.valueOf(chatId))
                 .body(request)
                 .retrieve()
                 .body(LinkResponse.class);
+        } finally {
+            metrics.recordCommandDuration("scrapper_sync_api", "addLink", startedAt);
+        }
     }
 
     @Retry(name = "scrapper")
     @CircuitBreaker(name = "scrapper")
     public LinkResponse removeLink(long chatId, RemoveLinkRequest request) {
-        return restClient
+        long startedAt = System.nanoTime();
+        try {
+            return restClient
                 .method(HttpMethod.DELETE)
                 .uri("/links")
                 .header("Tg-Chat-Id", String.valueOf(chatId))
                 .body(request)
                 .retrieve()
                 .body(LinkResponse.class);
+        } finally {
+            metrics.recordCommandDuration("scrapper_sync_api", "removeLink", startedAt);
+        }
     }
 }

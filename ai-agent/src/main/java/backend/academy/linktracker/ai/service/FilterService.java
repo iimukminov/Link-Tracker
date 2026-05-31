@@ -1,5 +1,6 @@
 package backend.academy.linktracker.ai.service;
 
+import backend.academy.linktracker.ai.metrics.AiAgentMetrics;
 import backend.academy.linktracker.ai.properties.AiAgentProperties;
 import backend.academy.linktracker.avro.LinkUpdateAvro;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 public class FilterService {
 
     private final AiAgentProperties properties;
+    private final AiAgentMetrics metrics;
 
     public boolean isPass(LinkUpdateAvro update) {
         String desc = update.getDescription();
@@ -41,6 +43,7 @@ public class FilterService {
     }
 
     private void logFiltered(LinkUpdateAvro update, String reason) {
+        metrics.recordFilteredUpdate(reason);
         log.atInfo()
                 .addKeyValue("updateId", update.getId())
                 .addKeyValue("author", update.getAuthor())

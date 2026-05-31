@@ -6,6 +6,7 @@ import backend.academy.linktracker.scrapper.dto.ListLinksResponse;
 import backend.academy.linktracker.scrapper.exceptions.ChatNotFoundException;
 import backend.academy.linktracker.scrapper.exceptions.LinkAlreadyTrackedException;
 import backend.academy.linktracker.scrapper.exceptions.LinkNotFoundException;
+import backend.academy.linktracker.scrapper.metrics.ScrapperMetrics;
 import backend.academy.linktracker.scrapper.model.LinkData;
 import backend.academy.linktracker.scrapper.properties.LinkProperties;
 import backend.academy.linktracker.scrapper.properties.ScrapperMessages;
@@ -27,6 +28,7 @@ public class LinkService {
     private final ChatRepository chatRepository;
     private final LinkProperties linkProperties;
     private final ScrapperMessages scrapperMessages;
+    private final ScrapperMetrics metrics;
 
     @Cacheable(value = "links", key = "#tgChatId")
     @Transactional(readOnly = true)
@@ -62,6 +64,7 @@ public class LinkService {
         LinkData linkData = linkRepository.addLinkToChat(
                 tgChatId, request.getLink(), request.getTags() != null ? request.getTags() : List.of());
 
+        metrics.recordTrackedLinkCreated(linkData.getUrl());
         return new LinkResponse()
                 .id(linkData.getId())
                 .url(linkData.getUrl())
@@ -80,6 +83,8 @@ public class LinkService {
         }
 
         linkRepository.removeLinkFromChat(tgChatId, link);
+
+        metrics.recordTrackedLinkDeleted(link);
         return new LinkResponse().id(0L).url(link).tags(List.of()).filters(List.of());
     }
 }
