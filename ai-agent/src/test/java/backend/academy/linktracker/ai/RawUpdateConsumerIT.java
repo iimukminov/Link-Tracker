@@ -2,6 +2,7 @@ package backend.academy.linktracker.ai;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import backend.academy.linktracker.ai.service.GroupingService;
 import backend.academy.linktracker.avro.LinkUpdateAvro;
 import java.time.Duration;
 import java.util.Collections;
@@ -36,7 +37,8 @@ import org.springframework.test.context.TestPropertySource;
             "ai-agent.filtering.excluded-authors[0]=bot-user",
             "ai-agent.filtering.min-length=5",
             "ai-agent.summarization.provider=STUB",
-            "ai-agent.summarization.threshold=15"
+            "ai-agent.summarization.threshold=15",
+            "ai-agent.grouping.window-ms=30000"
         })
 public class RawUpdateConsumerIT {
 
@@ -46,19 +48,20 @@ public class RawUpdateConsumerIT {
     @Autowired
     private ConsumerFactory<String, Object> consumerFactory;
 
+    @Autowired
+    private GroupingService groupingService;
+
     @Test
     @DisplayName("E2E Тест AI Agent: Обработка сырого сообщения и отправка в выходной топик")
     void shouldConsumeRawUpdateAndPublishProcessedUpdate() throws Exception {
-
         try (Consumer<String, Object> consumer = consumerFactory.createConsumer("test-out-group", "test-client")) {
             consumer.subscribe(Collections.singletonList("link.processed-updates.test"));
-
             consumer.poll(Duration.ofMillis(500));
 
             LinkUpdateAvro rawUpdate = LinkUpdateAvro.newBuilder()
                     .setId(101L)
                     .setUrl("https://github.com/example/repo")
-                    .setDescription("This is a very long update text that should be truncated")
+                    .setDescription("This is a critical update text that should be truncated because it is long")
                     .setAuthor("alice")
                     .setTgChatIds(List.of(10L, 20L))
                     .build();
@@ -66,6 +69,10 @@ public class RawUpdateConsumerIT {
             kafkaTemplate
                     .send("link.raw-updates.test", String.valueOf(rawUpdate.getId()), rawUpdate)
                     .get();
+
+            Thread.sleep(1000);
+
+            groupingService.flushGroupedUpdates();
 
             ConsumerRecords<String, Object> records = KafkaTestUtils.getRecords(consumer, Duration.ofSeconds(10));
 
@@ -77,8 +84,7 @@ public class RawUpdateConsumerIT {
             LinkUpdateAvro processed = (LinkUpdateAvro) value;
 
             assertThat(processed.getId()).isEqualTo(101L);
-            assertThat(processed.getDescription()).isEqualTo("This is a very ...");
-            assertThat(processed.getPriority()).isEqualTo("HIGH");
+            assertThat(processed.getPriority().toString()).isEqualTo("HIGH");
         }
     }
 

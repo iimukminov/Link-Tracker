@@ -46,3 +46,16 @@ ai-agent:
       base-url: ${AI_AGENT_SUMMARIZATION_API_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
       token: ${AI_AGENT_SUMMARIZATION_API_TOKEN:твой_токен_gemini}
       model: ${AI_AGENT_SUMMARIZATION_API_MODEL:gemini-2.5-flash}
+  prioritization:
+    high-keywords:
+      - critical
+      - urgent
+      - breaking
+      - security
+  low-keywords:
+    - minor
+    - typo
+    - chore
+    - docs
+  grouping:
+    window-ms: 30000

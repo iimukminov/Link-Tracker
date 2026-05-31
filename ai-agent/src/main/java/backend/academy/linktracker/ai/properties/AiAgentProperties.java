@@ -29,6 +29,14 @@ public class AiAgentProperties {
     @NotNull
     private Summarization summarization = new Summarization();
 
+    @Valid
+    @NotNull
+    private Prioritization prioritization = new Prioritization();
+
+    @Valid
+    @NotNull
+    private Grouping grouping = new Grouping();
+
     @Getter
     @Setter
     public static class Filtering {
@@ -73,5 +81,22 @@ public class AiAgentProperties {
 
         @NotNull
         private Duration timeout = Duration.ofSeconds(5);
+    }
+
+    @Getter
+    @Setter
+    public static class Prioritization {
+        @NotNull
+        private List<String> highKeywords = new ArrayList<>();
+
+        @NotNull
+        private List<String> lowKeywords = new ArrayList<>();
+    }
+
+    @Getter
+    @Setter
+    public static class Grouping {
+        @Min(1000)
+        private Duration windowMs = Duration.ofMillis(30000);
     }
 }
