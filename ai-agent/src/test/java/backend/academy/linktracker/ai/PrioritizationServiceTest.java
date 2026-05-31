@@ -48,4 +48,16 @@ class PrioritizationServiceTest {
         String priority = prioritizationService.determinePriority(text);
         assertEquals("HIGH", priority);
     }
+
+    @Test
+    void shouldReturnMediumPriority_whenDescriptionIsNull() {
+        String priority = prioritizationService.determinePriority(null);
+        assertEquals("MEDIUM", priority);
+    }
+
+    @Test
+    void shouldReturnMediumPriority_whenDescriptionIsEmpty() {
+        String priority = prioritizationService.determinePriority("   ");
+        assertEquals("MEDIUM", priority);
+    }
 }

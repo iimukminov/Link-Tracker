@@ -3,7 +3,6 @@ package backend.academy.linktracker.ai.service;
 import backend.academy.linktracker.avro.LinkUpdateAvro;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -29,25 +28,26 @@ public class GroupingService {
     }
 
     public void flushGroupedUpdates() {
-        for (Map.Entry<Long, Queue<LinkUpdateAvro>> entry : buffer.entrySet()) {
-            Long chatId = entry.getKey();
-            Queue<LinkUpdateAvro> queue = entry.getValue();
-
-            if (queue == null || queue.isEmpty()) {
-                continue;
-            }
+        buffer.forEach((chatId, queue) -> {
+            if (queue == null || queue.isEmpty()) return;
 
             List<LinkUpdateAvro> updates = extractAll(queue);
-            if (updates.isEmpty()) {
-                continue;
-            }
+
+            buffer.computeIfPresent(chatId, (k, q) -> q.isEmpty() ? null : q);
+
+            if (updates.isEmpty()) return;
+
+            log.atInfo()
+                    .addKeyValue("chatId", chatId)
+                    .addKeyValue("batchSize", updates.size())
+                    .log("Flushing grouped updates");
 
             if (updates.size() == 1) {
                 sendSingle(chatId, updates.get(0));
             } else {
                 sendGrouped(chatId, updates);
             }
-        }
+        });
     }
 
     private List<LinkUpdateAvro> extractAll(Queue<LinkUpdateAvro> queue) {

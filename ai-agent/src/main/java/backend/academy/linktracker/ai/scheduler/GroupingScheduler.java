@@ -15,7 +15,7 @@ public class GroupingScheduler {
 
     @Scheduled(fixedDelayString = "${ai-agent.grouping.window-ms:30000}")
     public void scheduleFlush() {
-        log.debug("Triggering scheduled flush of grouped updates");
+        log.atDebug().addKeyValue("action", "scheduledFlush").log("Triggering scheduled flush of grouped updates");
         groupingService.flushGroupedUpdates();
     }
 }
