@@ -59,6 +59,17 @@ class AiAgentUpdateProcessorTest {
         assertEquals("HIGH", processed.getPriority());
     }
 
+    @Test
+    void shouldNotSummarizeShortText() {
+        LinkUpdateAvro rawUpdate = update("Short text");
+        when(filterService.isPass(rawUpdate)).thenReturn(true);
+        when(textSummarizer.summarize("Short text", 10)).thenReturn("Short text");
+
+        LinkUpdateAvro processed = processor.process(rawUpdate).orElseThrow();
+
+        assertEquals("Short text", processed.getDescription());
+    }
+
     private LinkUpdateAvro update(String description) {
         return LinkUpdateAvro.newBuilder()
                 .setId(1L)
