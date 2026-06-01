@@ -19,8 +19,11 @@ public class RepositoryMetricsAspect {
         try {
             return joinPoint.proceed();
         } finally {
-            String methodName = joinPoint.getSignature().getName();
-            metrics.recordRequestDuration("database", methodName, startedAt);
+            String className = joinPoint.getSignature().getDeclaringType().getSimpleName();
+
+            String tableName = className.toLowerCase().replace("repository", "").replace("impl", "");
+
+            metrics.recordRequestDuration("database", tableName, startedAt);
         }
     }
 }
