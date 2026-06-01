@@ -85,6 +85,6 @@ public class ScrapperMetrics {
         if (host.contains("stackoverflow")) {
             return "stackoverflow";
         }
-        return host;
+        return "unsupported";
     }
 }

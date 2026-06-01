@@ -1,5 +1,6 @@
 package backend.academy.linktracker.bot.handlers;
 
+import backend.academy.linktracker.bot.command.Command;
 import backend.academy.linktracker.bot.command.CommandRegistry;
 import backend.academy.linktracker.bot.metrics.BotMetrics;
 import backend.academy.linktracker.bot.service.UserStateService;
@@ -41,13 +42,16 @@ public class MessageHandler {
                 .addKeyValue("fullText", message.text())
                 .log();
 
-        metrics.recordCommandRequest(commandName);
+        Command command = commandRegistry.getCommand(commandName);
+        String safeCommandName = command.getName();
+
+        metrics.recordCommandRequest(safeCommandName);
 
         long startedAt = System.nanoTime();
         try {
             commandRegistry.getCommand(commandName).execute(message);
         } finally {
-            metrics.recordCommandHandlingDuration(commandName, startedAt);
+            metrics.recordCommandHandlingDuration(safeCommandName, startedAt);
         }
     }
 
