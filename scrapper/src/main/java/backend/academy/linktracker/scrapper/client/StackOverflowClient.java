@@ -27,15 +27,15 @@ public class StackOverflowClient {
 
         try {
             StackOverflowResponse response = restClient
-                .get()
-                .uri(uriBuilder -> uriBuilder
-                    .path("/questions/{id}/answers")
-                    .queryParam("site", "stackoverflow")
-                    .queryParam("fromdate", fromDateSeconds)
-                    .queryParam("filter", "withbody")
-                    .build(questionId))
-                .retrieve()
-                .body(StackOverflowResponse.class);
+                    .get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/questions/{id}/answers")
+                            .queryParam("site", "stackoverflow")
+                            .queryParam("fromdate", fromDateSeconds)
+                            .queryParam("filter", "withbody")
+                            .build(questionId))
+                    .retrieve()
+                    .body(StackOverflowResponse.class);
             return Optional.ofNullable(response);
         } finally {
             metrics.recordRequestDuration("external_source", "stackoverflow", startedAt);
@@ -50,15 +50,15 @@ public class StackOverflowClient {
 
         try {
             StackOverflowResponse response = restClient
-                .get()
-                .uri(uriBuilder -> uriBuilder
-                    .path("/questions/{id}/comments")
-                    .queryParam("site", "stackoverflow")
-                    .queryParam("fromdate", fromDateSeconds)
-                    .queryParam("filter", "withbody")
-                    .build(questionId))
-                .retrieve()
-                .body(StackOverflowResponse.class);
+                    .get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/questions/{id}/comments")
+                            .queryParam("site", "stackoverflow")
+                            .queryParam("fromdate", fromDateSeconds)
+                            .queryParam("filter", "withbody")
+                            .build(questionId))
+                    .retrieve()
+                    .body(StackOverflowResponse.class);
             return Optional.ofNullable(response);
         } finally {
             metrics.recordRequestDuration("external_source", "stackoverflow", startedAt);
@@ -72,13 +72,13 @@ public class StackOverflowClient {
 
         try {
             StackOverflowResponse response = restClient
-                .get()
-                .uri(uriBuilder -> uriBuilder
-                    .path("/questions/{id}")
-                    .queryParam("site", "stackoverflow")
-                    .build(questionId))
-                .retrieve()
-                .body(StackOverflowResponse.class);
+                    .get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/questions/{id}")
+                            .queryParam("site", "stackoverflow")
+                            .build(questionId))
+                    .retrieve()
+                    .body(StackOverflowResponse.class);
             return Optional.ofNullable(response);
         } finally {
             metrics.recordRequestDuration("external_source", "stackoverflow", startedAt);

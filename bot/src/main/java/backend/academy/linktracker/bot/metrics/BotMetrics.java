@@ -29,17 +29,21 @@ public class BotMetrics {
     }
 
     public void recordCommandRequest(String command) {
-        commandCounters.computeIfAbsent(command, key -> Counter.builder("command_requests")
-                .description("Handled bot commands")
-                .tag("command", key)
-                .register(meterRegistry)).increment();
+        commandCounters
+                .computeIfAbsent(command, key -> Counter.builder("command_requests")
+                        .description("Handled bot commands")
+                        .tag("command", key)
+                        .register(meterRegistry))
+                .increment();
     }
 
     public void recordTelegramRequest(String requestType) {
-        telegramRequestCounters.computeIfAbsent(requestType, key -> Counter.builder("telegram_requests")
-                .description("Telegram updates received by request type")
-                .tag("request_type", key)
-                .register(meterRegistry)).increment();
+        telegramRequestCounters
+                .computeIfAbsent(requestType, key -> Counter.builder("telegram_requests")
+                        .description("Telegram updates received by request type")
+                        .tag("request_type", key)
+                        .register(meterRegistry))
+                .increment();
     }
 
     public void recordCommandDuration(String scope, String scopeType, long startedAtNanos) {
@@ -48,29 +52,38 @@ public class BotMetrics {
 
     public void recordCommandHandlingDuration(String command, long startedAtNanos) {
         double elapsedMs = elapsedMs(startedAtNanos);
-        commandHandlingDurationSummaries.computeIfAbsent(command, key -> DistributionSummary.builder("command_handling_duration_ms_total")
-                .description("Bot command handling duration in milliseconds")
-                .baseUnit("milliseconds")
-                .tag("command", key)
-                .serviceLevelObjectives(properties.getDurationBuckets())
-                .publishPercentileHistogram()
-                .register(meterRegistry)).record(elapsedMs);
+        commandHandlingDurationSummaries
+                .computeIfAbsent(command, key -> DistributionSummary.builder("command_handling_duration_ms_total")
+                        .description("Bot command handling duration in milliseconds")
+                        .baseUnit("milliseconds")
+                        .tag("command", key)
+                        .serviceLevelObjectives(properties.getDurationBuckets())
+                        .publishPercentileHistogram()
+                        .register(meterRegistry))
+                .record(elapsedMs);
     }
 
     public void recordSentNotification() {
         sentNotifications.increment();
     }
 
-    private void recordDuration(Map<String, DistributionSummary> summaries, String metricName, String scope, String scopeType, long startedAtNanos) {
+    private void recordDuration(
+            Map<String, DistributionSummary> summaries,
+            String metricName,
+            String scope,
+            String scopeType,
+            long startedAtNanos) {
         double elapsedMs = elapsedMs(startedAtNanos);
-        summaries.computeIfAbsent(scope + ":" + scopeType, ignored -> DistributionSummary.builder(metricName)
-                .description("Bot operation duration in milliseconds")
-                .baseUnit("milliseconds")
-                .tag("scope", scope)
-                .tag("scope_type", scopeType)
-                .serviceLevelObjectives(properties.getDurationBuckets())
-                .publishPercentileHistogram()
-                .register(meterRegistry)).record(elapsedMs);
+        summaries
+                .computeIfAbsent(scope + ":" + scopeType, ignored -> DistributionSummary.builder(metricName)
+                        .description("Bot operation duration in milliseconds")
+                        .baseUnit("milliseconds")
+                        .tag("scope", scope)
+                        .tag("scope_type", scopeType)
+                        .serviceLevelObjectives(properties.getDurationBuckets())
+                        .publishPercentileHistogram()
+                        .register(meterRegistry))
+                .record(elapsedMs);
     }
 
     private static double elapsedMs(long startedAtNanos) {

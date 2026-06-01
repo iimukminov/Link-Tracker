@@ -3,6 +3,7 @@ package backend.academy.linktracker.scrapper.configuration;
 import backend.academy.linktracker.scrapper.client.BotClient;
 import backend.academy.linktracker.scrapper.client.GitHubClient;
 import backend.academy.linktracker.scrapper.client.StackOverflowClient;
+import backend.academy.linktracker.scrapper.metrics.ScrapperMetrics;
 import backend.academy.linktracker.scrapper.properties.BotProperties;
 import backend.academy.linktracker.scrapper.properties.GithubProperties;
 import backend.academy.linktracker.scrapper.properties.StackoverflowProperties;
@@ -36,18 +37,20 @@ public class ClientConfiguration {
     }
 
     @Bean
-    public GitHubClient gitHubClient(RestClient.Builder builder, GithubProperties properties) {
+    public GitHubClient gitHubClient(RestClient.Builder builder, GithubProperties properties, ScrapperMetrics metrics) {
         RestClient restClient = builder.baseUrl(properties.getBaseUrl())
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + properties.getToken())
                 .requestFactory(createRequestFactory(properties.getTimeout()))
                 .build();
-        return new GitHubClient(restClient);
+        return new GitHubClient(restClient, metrics);
     }
 
     @Bean
-    public StackOverflowClient stackOverflowClient(RestClient.Builder builder, StackoverflowProperties properties) {
-        return new StackOverflowClient(builder.baseUrl(properties.getBaseUrl())
+    public StackOverflowClient stackOverflowClient(
+            RestClient.Builder builder, StackoverflowProperties properties, ScrapperMetrics metrics) {
+        RestClient restClient = builder.baseUrl(properties.getBaseUrl())
                 .requestFactory(createRequestFactory(properties.getTimeout()))
-                .build());
+                .build();
+        return new StackOverflowClient(restClient, metrics);
     }
 }

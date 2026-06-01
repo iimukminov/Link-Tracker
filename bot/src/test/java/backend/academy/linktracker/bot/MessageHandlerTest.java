@@ -6,6 +6,7 @@ import backend.academy.linktracker.bot.command.Command;
 import backend.academy.linktracker.bot.command.CommandRegistry;
 import backend.academy.linktracker.bot.handlers.MessageHandler;
 import backend.academy.linktracker.bot.handlers.StateHandlerRegistry;
+import backend.academy.linktracker.bot.metrics.BotMetrics;
 import backend.academy.linktracker.bot.service.UserStateService;
 import com.pengrad.telegrambot.model.*;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,9 @@ class MessageHandlerTest {
 
     @Mock
     StateHandlerRegistry stateHandlerRegistry;
+
+    @Mock
+    BotMetrics metrics;
 
     @InjectMocks
     MessageHandler handler;

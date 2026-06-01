@@ -48,11 +48,11 @@ public class ScrapperClient {
         long startedAt = System.nanoTime();
         try {
             return restClient
-                .get()
-                .uri("/links")
-                .header("Tg-Chat-Id", String.valueOf(chatId))
-                .retrieve()
-                .body(ListLinksResponse.class);
+                    .get()
+                    .uri("/links")
+                    .header("Tg-Chat-Id", String.valueOf(chatId))
+                    .retrieve()
+                    .body(ListLinksResponse.class);
         } finally {
             metrics.recordCommandDuration("scrapper_sync_api", "getLinks", startedAt);
         }
@@ -64,12 +64,12 @@ public class ScrapperClient {
         long startedAt = System.nanoTime();
         try {
             return restClient
-                .post()
-                .uri("/links")
-                .header("Tg-Chat-Id", String.valueOf(chatId))
-                .body(request)
-                .retrieve()
-                .body(LinkResponse.class);
+                    .post()
+                    .uri("/links")
+                    .header("Tg-Chat-Id", String.valueOf(chatId))
+                    .body(request)
+                    .retrieve()
+                    .body(LinkResponse.class);
         } finally {
             metrics.recordCommandDuration("scrapper_sync_api", "addLink", startedAt);
         }
@@ -81,12 +81,12 @@ public class ScrapperClient {
         long startedAt = System.nanoTime();
         try {
             return restClient
-                .method(HttpMethod.DELETE)
-                .uri("/links")
-                .header("Tg-Chat-Id", String.valueOf(chatId))
-                .body(request)
-                .retrieve()
-                .body(LinkResponse.class);
+                    .method(HttpMethod.DELETE)
+                    .uri("/links")
+                    .header("Tg-Chat-Id", String.valueOf(chatId))
+                    .body(request)
+                    .retrieve()
+                    .body(LinkResponse.class);
         } finally {
             metrics.recordCommandDuration("scrapper_sync_api", "removeLink", startedAt);
         }

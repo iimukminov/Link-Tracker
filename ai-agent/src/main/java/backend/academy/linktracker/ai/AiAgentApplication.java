@@ -5,14 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication(scanBasePackages = {
-    "backend.academy.linktracker.ai",
-    "backend.academy.linktracker.common"
-})
-@ConfigurationPropertiesScan(basePackages = {
-    "backend.academy.linktracker.ai",
-    "backend.academy.linktracker.common"
-})
+@SpringBootApplication(scanBasePackages = {"backend.academy.linktracker.ai", "backend.academy.linktracker.common"})
+@ConfigurationPropertiesScan(basePackages = {"backend.academy.linktracker.ai", "backend.academy.linktracker.common"})
 @EnableScheduling
 public class AiAgentApplication {
 

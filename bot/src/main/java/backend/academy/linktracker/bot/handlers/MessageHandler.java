@@ -35,11 +35,11 @@ public class MessageHandler {
         String commandName = extractCommandName(message.text());
 
         log.atInfo()
-            .setMessage("Dispatching command")
-            .addKeyValue("chatId", message.chat().id())
-            .addKeyValue("command", commandName)
-            .addKeyValue("fullText", message.text())
-            .log();
+                .setMessage("Dispatching command")
+                .addKeyValue("chatId", message.chat().id())
+                .addKeyValue("command", commandName)
+                .addKeyValue("fullText", message.text())
+                .log();
 
         metrics.recordCommandRequest(commandName);
 
@@ -55,11 +55,11 @@ public class MessageHandler {
         long chatId = message.chat().id();
 
         log.atInfo()
-            .setMessage("Dispatching non command")
-            .addKeyValue("chatId", chatId)
-            .addKeyValue("handler", userStateService.getState(chatId))
-            .addKeyValue("fullText", message.text())
-            .log();
+                .setMessage("Dispatching non command")
+                .addKeyValue("chatId", chatId)
+                .addKeyValue("handler", userStateService.getState(chatId))
+                .addKeyValue("fullText", message.text())
+                .log();
 
         stateHandlerRegistry.getHandler(userStateService.getState(chatId)).handle(message);
     }

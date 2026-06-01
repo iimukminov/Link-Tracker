@@ -25,14 +25,14 @@ public class GitHubClient {
         long startedAt = System.nanoTime();
         try {
             GitHubIssueResponse[] issueResponses = restClient
-                .get()
-                .uri(uriBuilder -> uriBuilder
-                    .path("/repos/{owner}/{repo}/issues")
-                    .queryParam("since", since.toString())
-                    .queryParam("state", "all")
-                    .build(owner, repo))
-                .retrieve()
-                .body(GitHubIssueResponse[].class);
+                    .get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/repos/{owner}/{repo}/issues")
+                            .queryParam("since", since.toString())
+                            .queryParam("state", "all")
+                            .build(owner, repo))
+                    .retrieve()
+                    .body(GitHubIssueResponse[].class);
 
             return issueResponses != null ? List.of(issueResponses) : List.of();
         } finally {

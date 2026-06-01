@@ -1,6 +1,7 @@
 package backend.academy.linktracker.bot.configuration;
 
 import backend.academy.linktracker.bot.client.ScrapperClient;
+import backend.academy.linktracker.bot.metrics.BotMetrics;
 import backend.academy.linktracker.bot.properties.ScrapperProperties;
 import java.net.http.HttpClient;
 import org.springframework.context.annotation.Bean;
@@ -12,7 +13,8 @@ import org.springframework.web.client.RestClient;
 public class ClientConfiguration {
 
     @Bean
-    public ScrapperClient scrapperClient(RestClient.Builder builder, ScrapperProperties properties) {
+    public ScrapperClient scrapperClient(
+            RestClient.Builder builder, ScrapperProperties properties, BotMetrics metrics) {
         HttpClient httpClient =
                 HttpClient.newBuilder().connectTimeout(properties.getTimeout()).build();
 
@@ -22,6 +24,6 @@ public class ClientConfiguration {
         RestClient restClient =
                 builder.baseUrl(properties.getBaseUrl()).requestFactory(factory).build();
 
-        return new ScrapperClient(restClient);
+        return new ScrapperClient(restClient, metrics);
     }
 }

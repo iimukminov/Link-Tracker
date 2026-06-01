@@ -1,7 +1,6 @@
 package backend.academy.linktracker.common.properties;
 
 import jakarta.validation.constraints.NotEmpty;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;

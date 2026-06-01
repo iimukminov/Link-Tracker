@@ -29,34 +29,41 @@ public class ScrapperMetrics {
     }
 
     public void recordApiRequest(String source) {
-        apiRequestCounters.computeIfAbsent(source, key -> Counter.builder("api_requests")
-            .description("Incoming Scrapper API requests")
-            .tag("source", key)
-            .register(meterRegistry)).increment();
+        apiRequestCounters
+                .computeIfAbsent(source, key -> Counter.builder("api_requests")
+                        .description("Incoming Scrapper API requests")
+                        .tag("source", key)
+                        .register(meterRegistry))
+                .increment();
     }
 
     public void recordRequestDuration(String scope, String scopeType, long startedAtNanos) {
         double elapsedMs = (double) (System.nanoTime() - startedAtNanos) / TimeUnit.MILLISECONDS.toNanos(1);
-        durationSummaries.computeIfAbsent(scope + ":" + scopeType, ignored -> DistributionSummary.builder("request_duration_ms_total")
-            .description("Scrapper operation duration in milliseconds")
-            .baseUnit("milliseconds")
-            .tag("scope", scope)
-            .tag("scope_type", scopeType)
-            .serviceLevelObjectives(properties.getDurationBuckets())
-            .publishPercentileHistogram()
-            .register(meterRegistry)).record(elapsedMs);
+        durationSummaries
+                .computeIfAbsent(
+                        scope + ":" + scopeType, ignored -> DistributionSummary.builder("request_duration_ms_total")
+                                .description("Scrapper operation duration in milliseconds")
+                                .baseUnit("milliseconds")
+                                .tag("scope", scope)
+                                .tag("scope_type", scopeType)
+                                .serviceLevelObjectives(properties.getDurationBuckets())
+                                .publishPercentileHistogram()
+                                .register(meterRegistry))
+                .record(elapsedMs);
     }
 
     public void recordTrackedLinkCreated(URI url) {
         String domain = extractDomain(url);
-        trackedLinks.computeIfAbsent(domain, key -> {
-            AtomicLong count = new AtomicLong(0);
-            Gauge.builder("links_on_track_total", count, AtomicLong::get)
-                .description("Number of active links stored for monitoring")
-                .tag("tracked_source", key)
-                .register(meterRegistry);
-            return count;
-        }).incrementAndGet();
+        trackedLinks
+                .computeIfAbsent(domain, key -> {
+                    AtomicLong count = new AtomicLong(0);
+                    Gauge.builder("links_on_track_total", count, AtomicLong::get)
+                            .description("Number of active links stored for monitoring")
+                            .tag("tracked_source", key)
+                            .register(meterRegistry);
+                    return count;
+                })
+                .incrementAndGet();
     }
 
     public void recordTrackedLinkDeleted(URI url) {

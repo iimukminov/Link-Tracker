@@ -23,21 +23,22 @@ public class AiAgentMetrics {
 
     public void recordFilteredUpdate(String reason) {
         Counter.builder("ai_agent_filtered_updates_total")
-            .description("Количество отфильтрованных обновлений")
-            .tag("reason", reason)
-            .register(meterRegistry)
-            .increment();
+                .description("Количество отфильтрованных обновлений")
+                .tag("reason", reason)
+                .register(meterRegistry)
+                .increment();
     }
 
     public void recordDuration(String scope, long startedAtNanos) {
         double elapsedMs = (double) (System.nanoTime() - startedAtNanos) / TimeUnit.MILLISECONDS.toNanos(1);
-        durationSummaries.computeIfAbsent(scope, key -> DistributionSummary.builder("request_duration_ms_total")
-            .description("Длительность операций AI Agent в миллисекундах")
-            .baseUnit("milliseconds")
-            .tag("scope", key)
-            .serviceLevelObjectives(properties.getDurationBuckets())
-            .publishPercentileHistogram()
-            .register(meterRegistry)
-        ).record(elapsedMs);
+        durationSummaries
+                .computeIfAbsent(scope, key -> DistributionSummary.builder("request_duration_ms_total")
+                        .description("Длительность операций AI Agent в миллисекундах")
+                        .baseUnit("milliseconds")
+                        .tag("scope", key)
+                        .serviceLevelObjectives(properties.getDurationBuckets())
+                        .publishPercentileHistogram()
+                        .register(meterRegistry))
+                .record(elapsedMs);
     }
 }

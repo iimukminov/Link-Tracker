@@ -3,17 +3,20 @@ package backend.academy.linktracker.ai;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import backend.academy.linktracker.ai.metrics.AiAgentMetrics;
 import backend.academy.linktracker.ai.properties.AiAgentProperties;
 import backend.academy.linktracker.ai.service.FilterService;
 import backend.academy.linktracker.avro.LinkUpdateAvro;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 class FilterServiceTest {
 
     private AiAgentProperties properties;
     private FilterService filterService;
+    private AiAgentMetrics metrics;
 
     @BeforeEach
     void setUp() {
@@ -21,7 +24,9 @@ class FilterServiceTest {
         properties.getFiltering().setStopWords(List.of("spam", "promo"));
         properties.getFiltering().setExcludedAuthors(List.of("bot-user"));
         properties.getFiltering().setMinLength(20);
-        filterService = new FilterService(properties);
+
+        metrics = Mockito.mock(AiAgentMetrics.class);
+        filterService = new FilterService(properties, metrics);
     }
 
     @Test

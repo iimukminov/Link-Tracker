@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import backend.academy.linktracker.scrapper.dto.StackOverflowResponse;
+import backend.academy.linktracker.scrapper.metrics.ScrapperMetrics;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
@@ -27,6 +29,7 @@ public class StackOverflowClientTest {
 
     private static WireMockServer wireMockServer;
     private static StackOverflowClient stackOverflowClient;
+    private static ScrapperMetrics metrics;
 
     @BeforeAll
     static void setUp() {
@@ -35,9 +38,11 @@ public class StackOverflowClientTest {
         wireMockServer.start();
         WireMock.configureFor("localhost", wireMockServer.port());
 
+        metrics = Mockito.mock(ScrapperMetrics.class);
+
         RestClient restClient =
                 RestClient.builder().baseUrl(wireMockServer.baseUrl()).build();
-        stackOverflowClient = new StackOverflowClient(restClient);
+        stackOverflowClient = new StackOverflowClient(restClient, metrics);
     }
 
     @AfterAll

@@ -3,8 +3,10 @@ package backend.academy.linktracker.scrapper.repository;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import backend.academy.linktracker.scrapper.TestcontainersConfiguration;
+import backend.academy.linktracker.scrapper.metrics.ScrapperMetrics;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -17,6 +19,9 @@ public class MigrationTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Mock
+    ScrapperMetrics metrics;
 
     @MockitoBean
     private ObjectMapper objectMapper;

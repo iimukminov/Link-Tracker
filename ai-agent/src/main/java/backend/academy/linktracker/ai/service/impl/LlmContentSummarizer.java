@@ -21,13 +21,13 @@ public class LlmContentSummarizer implements TextSummarizer {
     private final AiAgentProperties properties;
     private final ObjectMapper objectMapper;
     private final RestClient restClient;
-    private final AiAgentMetrics  metrics;
+    private final AiAgentMetrics metrics;
 
     public LlmContentSummarizer(
             AiAgentProperties properties,
             ObjectMapper objectMapper,
             @Qualifier("geminiRestClient") RestClient restClient,
-            AiAgentMetrics  metrics) {
+            AiAgentMetrics metrics) {
         this.properties = properties;
         this.objectMapper = objectMapper;
         this.restClient = restClient;
@@ -42,17 +42,17 @@ public class LlmContentSummarizer implements TextSummarizer {
             throw new IllegalStateException("LLM Summarization API is not properly configured");
         }
 
-        long startedAt = System.currentTimeMillis();
+        long startedAt = System.nanoTime();
         try {
             Map<String, Object> requestBody = buildGeminiRequest(text);
 
             String response = restClient
-                .post()
-                .uri(URI.create(buildEndpointUrl(api)))
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(requestBody)
-                .retrieve()
-                .body(String.class);
+                    .post()
+                    .uri(URI.create(buildEndpointUrl(api)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(requestBody)
+                    .retrieve()
+                    .body(String.class);
 
             String summary = parseResponse(response);
             if (summary == null || summary.isBlank()) {
@@ -62,7 +62,6 @@ public class LlmContentSummarizer implements TextSummarizer {
         } finally {
             metrics.recordDuration("llm_api", startedAt);
         }
-
     }
 
     private Map<String, Object> buildGeminiRequest(String text) {

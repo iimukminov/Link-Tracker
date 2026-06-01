@@ -3,6 +3,7 @@ package backend.academy.linktracker.ai;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import backend.academy.linktracker.ai.metrics.AiAgentMetrics;
 import backend.academy.linktracker.ai.properties.AiAgentProperties;
 import backend.academy.linktracker.ai.service.impl.LlmContentSummarizer;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +13,7 @@ import java.time.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
@@ -59,6 +61,8 @@ class LlmContentSummarizerTest {
         properties.getSummarization().getApi().setPrompt("Сделай саммари:");
         properties.getSummarization().getApi().setTimeout(Duration.ofSeconds(2));
 
+        AiAgentMetrics metrics = Mockito.mock(AiAgentMetrics.class);
+
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(properties.getSummarization().getApi().getTimeout());
         requestFactory.setReadTimeout(properties.getSummarization().getApi().getTimeout());
@@ -69,7 +73,7 @@ class LlmContentSummarizerTest {
                         "x-goog-api-key", properties.getSummarization().getApi().getToken())
                 .build();
 
-        LlmContentSummarizer summarizer = new LlmContentSummarizer(properties, objectMapper, restClient);
+        LlmContentSummarizer summarizer = new LlmContentSummarizer(properties, objectMapper, restClient, metrics);
 
         String summary = summarizer.summarize("Очень длинный текст из коммита...", 20);
 
