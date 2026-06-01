@@ -40,15 +40,14 @@ public class ScrapperMetrics {
     public void recordRequestDuration(String scope, String scopeType, long startedAtNanos) {
         double elapsedMs = (double) (System.nanoTime() - startedAtNanos) / TimeUnit.MILLISECONDS.toNanos(1);
         durationSummaries
-                .computeIfAbsent(
-                        scope + ":" + scopeType, ignored -> DistributionSummary.builder("request_duration_ms_total")
-                                .description("Scrapper operation duration in milliseconds")
-                                .baseUnit("milliseconds")
-                                .tag("scope", scope)
-                                .tag("scope_type", scopeType)
-                                .serviceLevelObjectives(properties.getDurationBuckets())
-                                .publishPercentileHistogram()
-                                .register(meterRegistry))
+                .computeIfAbsent(scope + ":" + scopeType, ignored -> DistributionSummary.builder("request_duration_ms")
+                        .description("Scrapper operation duration in milliseconds")
+                        .baseUnit("milliseconds")
+                        .tag("scope", scope)
+                        .tag("scope_type", scopeType)
+                        .serviceLevelObjectives(properties.getDurationBuckets())
+                        .publishPercentileHistogram()
+                        .register(meterRegistry))
                 .record(elapsedMs);
     }
 
@@ -57,7 +56,7 @@ public class ScrapperMetrics {
         trackedLinks
                 .computeIfAbsent(domain, key -> {
                     AtomicLong count = new AtomicLong(0);
-                    Gauge.builder("links_on_track_total", count, AtomicLong::get)
+                    Gauge.builder("links_on_track", count, AtomicLong::get)
                             .description("Number of active links stored for monitoring")
                             .tag("tracked_source", key)
                             .strongReference(true)

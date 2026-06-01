@@ -325,6 +325,8 @@ services:
       - "${GRAFANA_PORT:-3000}:3000"
     volumes:
       - grafana-data:/var/lib/grafana
+      - ./monitoring/alerts:/etc/grafana/provisioning/alerting:ro
+      - ./monitoring/dashboards:/etc/grafana/provisioning/dashboards:ro
     networks:
       - backend
 

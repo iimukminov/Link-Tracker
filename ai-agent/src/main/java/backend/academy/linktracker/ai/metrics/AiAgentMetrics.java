@@ -22,7 +22,7 @@ public class AiAgentMetrics {
     }
 
     public void recordFilteredUpdate(String reason) {
-        Counter.builder("ai_agent_filtered_updates_total")
+        Counter.builder("ai_agent_filtered_updates")
                 .description("Количество отфильтрованных обновлений")
                 .tag("reason", reason)
                 .register(meterRegistry)
@@ -32,7 +32,7 @@ public class AiAgentMetrics {
     public void recordDuration(String scope, long startedAtNanos) {
         double elapsedMs = (double) (System.nanoTime() - startedAtNanos) / TimeUnit.MILLISECONDS.toNanos(1);
         durationSummaries
-                .computeIfAbsent(scope, key -> DistributionSummary.builder("request_duration_ms_total")
+                .computeIfAbsent(scope, key -> DistributionSummary.builder("request_duration_ms")
                         .description("Длительность операций AI Agent в миллисекундах")
                         .baseUnit("milliseconds")
                         .tag("scope", key)

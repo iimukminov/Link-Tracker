@@ -23,18 +23,18 @@ sum(jvm_memory_used_bytes{area="heap", application=~"$application"}) / 1024 / 10
 --------------------------------------------------------------------------------
 
 2.1 Количество активных ссылок на мониторинге (с распределением по доменам):
-sum(links_on_track_total) by (tracked_source)
+sum(links_on_track) by (tracked_source)
 * Legend format: {{tracked_source}}
 
 2.2 Время выполнения одной операции Scrape (запросы к GitHub/StackOverflow):
 - 50-й перцентиль (Медиана):
-histogram_quantile(0.50, sum(rate(request_duration_ms_total_bucket{scope="external_source"}[5m])) by (le, scope_type))
+histogram_quantile(0.50, sum(rate(request_duration_ms_milliseconds_bucket{scope="external_source"}[5m])) by (le, scope_type))
 
 - 95-й перцентиль:
-histogram_quantile(0.95, sum(rate(request_duration_ms_total_bucket{scope="external_source"}[5m])) by (le, scope_type))
+histogram_quantile(0.95, sum(rate(request_duration_ms_milliseconds_bucket{scope="external_source"}[5m])) by (le, scope_type))
 
 - 99-й перцентиль:
-histogram_quantile(0.99, sum(rate(request_duration_ms_total_bucket{scope="external_source"}[5m])) by (le, scope_type))
+histogram_quantile(0.99, sum(rate(request_duration_ms_milliseconds_bucket{scope="external_source"}[5m])) by (le, scope_type))
 * Legend format: {{scope_type}} (pXX)
 
 --------------------------------------------------------------------------------
@@ -51,13 +51,13 @@ sum(rate(command_requests_total[1m])) by (command)
 
 3.3 Время обработки одной команды ботом:
 - 50-й перцентиль (Медиана):
-histogram_quantile(0.50, sum(rate(command_handling_duration_ms_total_bucket[5m])) by (le, command))
+histogram_quantile(0.50, sum(rate(command_handling_duration_ms_milliseconds_bucket{}[5m])) by (le, command))
 
 - 95-й перцентиль:
-histogram_quantile(0.95, sum(rate(command_handling_duration_ms_total_bucket[5m])) by (le, command))
+histogram_quantile(0.95, sum(rate(command_handling_duration_ms_milliseconds_bucket{}[5m])) by (le, command))
 
 - 99-й перцентиль:
-histogram_quantile(0.99, sum(rate(command_handling_duration_ms_total_bucket[5m])) by (le, command))
+histogram_quantile(0.99, sum(rate(command_handling_duration_ms_milliseconds_bucket{}[5m])) by (le, command))
 * Legend format: {{command}} (pXX)
 
 3.4 Количество отправленных Telegram-нотификаций в минуту:

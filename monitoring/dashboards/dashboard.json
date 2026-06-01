@@ -502,7 +502,7 @@
                         "type": "prometheus",
                         "uid": "${DS_PROMETHEUS}"
                     },
-                    "expr": "sum(links_on_track_total) by (tracked_source)",
+                    "expr": "sum(links_on_track) by (tracked_source)",
                     "legendFormat": "{{tracked_source}}",
                     "refId": "A"
                 }
@@ -595,7 +595,7 @@
                         "type": "prometheus",
                         "uid": "${DS_PROMETHEUS}"
                     },
-                    "expr": "histogram_quantile(0.50, sum(rate(request_duration_ms_total_bucket{scope=\"external_source\"}[5m])) by (le, scope_type))",
+                    "expr": "histogram_quantile(0.50, sum(rate(request_duration_ms_milliseconds_bucket{scope=\"external_source\"}[5m])) by (le, scope_type))",
                     "legendFormat": "{{scope_type}} (p50)",
                     "refId": "A"
                 },
@@ -604,7 +604,7 @@
                         "type": "prometheus",
                         "uid": "${DS_PROMETHEUS}"
                     },
-                    "expr": "histogram_quantile(0.95, sum(rate(request_duration_ms_total_bucket{scope=\"external_source\"}[5m])) by (le, scope_type))",
+                    "expr": "histogram_quantile(0.95, sum(rate(request_duration_ms_milliseconds_bucket{scope=\"external_source\"}[5m])) by (le, scope_type))",
                     "legendFormat": "{{scope_type}} (p95)",
                     "refId": "B"
                 },
@@ -613,7 +613,7 @@
                         "type": "prometheus",
                         "uid": "${DS_PROMETHEUS}"
                     },
-                    "expr": "histogram_quantile(0.99, sum(rate(request_duration_ms_total_bucket{scope=\"external_source\"}[5m])) by (le, scope_type))",
+                    "expr": "histogram_quantile(0.99, sum(rate(request_duration_ms_milliseconds_bucket{scope=\"external_source\"}[5m])) by (le, scope_type))",
                     "legendFormat": "{{scope_type}} (p99)",
                     "refId": "C"
                 }
@@ -892,7 +892,7 @@
                         "type": "prometheus",
                         "uid": "${DS_PROMETHEUS}"
                     },
-                    "expr": "histogram_quantile(0.50, sum(rate(command_handling_duration_ms_total_bucket[5m])) by (le, command))",
+                    "expr": "histogram_quantile(0.50, sum(rate(command_handling_duration_ms_milliseconds_bucket[5m])) by (le, command))",
                     "legendFormat": "{{command}} (p50)",
                     "refId": "A"
                 },
@@ -901,7 +901,7 @@
                         "type": "prometheus",
                         "uid": "${DS_PROMETHEUS}"
                     },
-                    "expr": "histogram_quantile(0.95, sum(rate(command_handling_duration_ms_total_bucket[5m])) by (le, command))",
+                    "expr": "histogram_quantile(0.95, sum(rate(command_handling_duration_ms_milliseconds_bucket[5m])) by (le, command))",
                     "legendFormat": "{{command}} (p95)",
                     "refId": "B"
                 },
@@ -910,7 +910,7 @@
                         "type": "prometheus",
                         "uid": "${DS_PROMETHEUS}"
                     },
-                    "expr": "histogram_quantile(0.99, sum(rate(command_handling_duration_ms_total_bucket[5m])) by (le, command))",
+                    "expr": "histogram_quantile(0.99, sum(rate(command_handling_duration_ms_milliseconds_bucket[5m])) by (le, command))",
                     "legendFormat": "{{command}} (p99)",
                     "refId": "C"
                 }
@@ -989,7 +989,7 @@
             {
                 "current": {
                     "selected": true,
-                    "text": "> bot",
+                    "text": "bot",
                     "value": "bot"
                 },
                 "hide": 0,
@@ -999,17 +999,17 @@
                 "options": [
                     {
                         "selected": false,
-                        "text": "",
+                        "text": "scrapper",
                         "value": "scrapper"
                     },
                     {
                         "selected": true,
-                        "text": "",
+                        "text": "bot",
                         "value": "bot"
                     },
                     {
                         "selected": false,
-                        "text": "",
+                        "text": "ai-agent",
                         "value": "ai-agent"
                     }
                 ],

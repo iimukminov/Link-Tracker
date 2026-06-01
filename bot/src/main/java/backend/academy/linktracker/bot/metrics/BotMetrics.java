@@ -47,13 +47,13 @@ public class BotMetrics {
     }
 
     public void recordCommandDuration(String scope, String scopeType, long startedAtNanos) {
-        recordDuration(commandDurationSummaries, "command_duration_ms_total", scope, scopeType, startedAtNanos);
+        recordDuration(commandDurationSummaries, "command_duration_ms", scope, scopeType, startedAtNanos);
     }
 
     public void recordCommandHandlingDuration(String command, long startedAtNanos) {
         double elapsedMs = elapsedMs(startedAtNanos);
         commandHandlingDurationSummaries
-                .computeIfAbsent(command, key -> DistributionSummary.builder("command_handling_duration_ms_total")
+                .computeIfAbsent(command, key -> DistributionSummary.builder("command_handling_duration_ms")
                         .description("Bot command handling duration in milliseconds")
                         .baseUnit("milliseconds")
                         .tag("command", key)
