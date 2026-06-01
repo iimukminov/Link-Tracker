@@ -2,7 +2,6 @@ package backend.academy.linktracker.scrapper.metrics;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.stereotype.Component;
@@ -17,7 +16,7 @@ public class ControllerMetricsAspect {
     private final ScrapperMetrics metrics;
 
     @Before("execution(* backend.academy.linktracker.scrapper.controller..*(..))")
-    public void measureApiControllerRequest(JoinPoint joinPoint) {
+    public void measureApiControllerRequest() {
         String source = "unknown";
 
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
