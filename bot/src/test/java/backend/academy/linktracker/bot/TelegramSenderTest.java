@@ -3,6 +3,7 @@ package backend.academy.linktracker.bot;
 import static org.mockito.Mockito.*;
 
 import backend.academy.linktracker.bot.client.TelegramSender;
+import backend.academy.linktracker.bot.metrics.BotMetrics;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.response.SendResponse;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,9 @@ class TelegramSenderTest {
 
     @Mock
     TelegramBot bot;
+
+    @Mock
+    BotMetrics metrics;
 
     @InjectMocks
     TelegramSender sender;

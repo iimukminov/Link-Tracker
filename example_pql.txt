@@ -1,0 +1,65 @@
+--------------------------------------------------------------------------------
+1. СТАНДАРТНЫЕ RED-МЕТРИКИ (ДЛЯ СИСТЕМНОГО ДАШБОРДА)
+--------------------------------------------------------------------------------
+
+1.1 Rate (Количество входящих HTTP-запросов к приложению в секунду):
+sum(rate(http_server_requests_seconds_count{application=~"$application"}[1m]))
+* Legend format: requests/sec
+
+1.2 Errors (Количество неуспешных HTTP-запросов с кодом 5xx в секунду):
+sum(rate(http_server_requests_seconds_count{status=~"5..", application=~"$application"}[1m]))
+* Legend format: errors/sec
+
+1.3 Duration (95-й перцентиль времени обработки HTTP-запросов приложением):
+histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=~"$application"}[1m])) by (le))
+* Legend format: p95 duration (s)
+
+1.4 Использование оперативной памяти Heap в мегабайтах (JVM Heap Memory):
+sum(jvm_memory_used_bytes{area="heap", application=~"$application"}) / 1024 / 1024
+* Legend format: Heap Used (MB)
+
+--------------------------------------------------------------------------------
+2. БИЗНЕС-МЕТРИКИ (СЕРВИС SCRAPPER)
+--------------------------------------------------------------------------------
+
+2.1 Количество активных ссылок на мониторинге (с распределением по доменам):
+sum(links_on_track_total) by (tracked_source)
+* Legend format: {{tracked_source}}
+
+2.2 Время выполнения одной операции Scrape (запросы к GitHub/StackOverflow):
+- 50-й перцентиль (Медиана):
+histogram_quantile(0.50, sum(rate(request_duration_ms_total_bucket{scope="external_source"}[5m])) by (le, scope_type))
+
+- 95-й перцентиль:
+histogram_quantile(0.95, sum(rate(request_duration_ms_total_bucket{scope="external_source"}[5m])) by (le, scope_type))
+
+- 99-й перцентиль:
+histogram_quantile(0.99, sum(rate(request_duration_ms_total_bucket{scope="external_source"}[5m])) by (le, scope_type))
+* Legend format: {{scope_type}} (pXX)
+
+--------------------------------------------------------------------------------
+3. БИЗНЕС-МЕТРИКИ (СЕРВИС BOT)
+--------------------------------------------------------------------------------
+
+3.1 Количество входящих сообщений от пользователей в секунду:
+sum(rate(telegram_requests_total{request_type="text_message"}[1m]))
+* Legend format: msg/sec
+
+3.2 Количество запросов к боту с группировкой по командам:
+sum(rate(command_requests_total[1m])) by (command)
+* Legend format: {{command}}
+
+3.3 Время обработки одной команды ботом:
+- 50-й перцентиль (Медиана):
+histogram_quantile(0.50, sum(rate(command_handling_duration_ms_total_bucket[5m])) by (le, command))
+
+- 95-й перцентиль:
+histogram_quantile(0.95, sum(rate(command_handling_duration_ms_total_bucket[5m])) by (le, command))
+
+- 99-й перцентиль:
+histogram_quantile(0.99, sum(rate(command_handling_duration_ms_total_bucket[5m])) by (le, command))
+* Legend format: {{command}} (pXX)
+
+3.4 Количество отправленных Telegram-нотификаций в минуту:
+sum(increase(sent_notification_total[1m]))
+* Legend format: notifications/min

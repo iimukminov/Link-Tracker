@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${BOT_PORT:8011}
 
 spring:
   application:

@@ -29,7 +29,6 @@ public class TelegramSender {
         BaseResponse response = bot.execute(new SendMessage(chatId, text).parseMode(ParseMode.HTML));
 
         if (!response.isOk()) {
-            metrics.recordSentNotification();
             log.atError()
                     .setMessage("Failed to send message")
                     .addKeyValue("chatId", chatId)
@@ -37,6 +36,7 @@ public class TelegramSender {
                     .addKeyValue("description", response.description())
                     .log();
         } else {
+            metrics.recordSentNotification();
             log.atInfo()
                     .setMessage("Message sent")
                     .addKeyValue("chatId", chatId)

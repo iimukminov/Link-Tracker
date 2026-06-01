@@ -60,6 +60,7 @@ public class ScrapperMetrics {
                     Gauge.builder("links_on_track_total", count, AtomicLong::get)
                             .description("Number of active links stored for monitoring")
                             .tag("tracked_source", key)
+                            .strongReference(true)
                             .register(meterRegistry);
                     return count;
                 })

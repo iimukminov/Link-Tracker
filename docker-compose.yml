@@ -41,6 +41,8 @@ services:
     build:
       dockerfile: bot/Dockerfile
     container_name: link_tracker_bot
+    ports:
+      - "${BOT_PORT}:${BOT_PORT}"
     volumes:
       - ./bot/config/messages.yml:/app/config/messages.yml
     env_file:
